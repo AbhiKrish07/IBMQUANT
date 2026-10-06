@@ -20,10 +20,13 @@ class QiskitStatevectorKernel:
     It avoids the much slower sampler job-per-pair approach, while retaining a
     genuine Qiskit circuit simulation for every encoded transaction.
     """
-    def __init__(self, n_qubits=4):
+    def __init__(self, n_qubits=4, reps=2, entanglement="linear", shots=None):
         self.n_qubits = min(max(1, n_qubits), 8)
+        self.reps = max(1, min(5, reps))
+        self.entanglement = entanglement if entanglement in ("linear", "full", "circular") else "linear"
+        self.shots = shots
         self.feature_map = ZZFeatureMap(
-            feature_dimension=self.n_qubits, reps=2, entanglement="linear"
+            feature_dimension=self.n_qubits, reps=self.reps, entanglement=self.entanglement
         )
 
     def _state(self, features):
@@ -43,8 +46,11 @@ class QiskitStatevectorKernel:
 
 
 class QUpiSentinelEngine:
-    def __init__(self, n_qubits=4):
+    def __init__(self, n_qubits=4, reps=2, entanglement="linear", shots=None):
         self.n_qubits = n_qubits
+        self.reps = reps
+        self.entanglement = entanglement
+        self.shots = shots
         
         # Classical Preprocessing (Paper 1 Mandate: Vuppala 2024)
         self.scaler = StandardScaler()
@@ -59,7 +65,9 @@ class QUpiSentinelEngine:
         
         # Stage 2: mandatory Qiskit quantum kernel.  There is deliberately no
         # classical substitute: missing Qiskit is a deployment configuration error.
-        self.qkernel = QiskitStatevectorKernel(n_qubits=self.n_qubits)
+        self.qkernel = QiskitStatevectorKernel(
+            n_qubits=self.n_qubits, reps=self.reps, entanglement=self.entanglement, shots=self.shots
+        )
         self.feature_map = self.qkernel.feature_map
         
         # The Quantum Classifier (Using precomputed kernel matrix for probability outputs)

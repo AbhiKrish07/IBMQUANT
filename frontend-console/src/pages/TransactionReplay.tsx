@@ -38,8 +38,23 @@ export function TransactionReplay() {
   }, [stageFilter, typologyFilter]);
 
   useEffect(() => {
-    fetchStreamData();
-  }, [fetchStreamData]);
+    let isSubscribed = true;
+    fetch(`${API_BASE_URL}/api/stream?stage_filter=${stageFilter}&typology=${typologyFilter}&limit=25`)
+      .then(res => res.json())
+      .then(data => {
+        if (isSubscribed) {
+          setTransactions(data.transactions || []);
+          setNetworkGraph(data.network_graph || null);
+          if (data.transactions && data.transactions.length > 0) {
+            setSelectedTx((prev: any) => prev || data.transactions[0]);
+          }
+        }
+      })
+      .catch(console.error);
+    return () => {
+      isSubscribed = false;
+    };
+  }, [stageFilter, typologyFilter]);
 
   useEffect(() => {
     let timer: any;
