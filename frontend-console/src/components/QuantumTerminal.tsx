@@ -17,27 +17,25 @@ export function QuantumTerminal() {
   const [qiskitVersion, setQiskitVersion] = useState<string>('1.4.6');
   const logEndRef = useRef<HTMLDivElement>(null);
 
-  const fetchTerminalLogs = async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/quantum/terminal-logs`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data.logs && Array.isArray(data.logs)) {
-          setLogs(data.logs);
-        }
-        if (data.qiskit_version) {
-          setQiskitVersion(data.qiskit_version);
-        }
-      }
-    } catch {
-      // Fallback local synthetic execution logs if backend is initializing
-    }
-  };
-
   useEffect(() => {
-    fetchTerminalLogs();
-    const interval = setInterval(fetchTerminalLogs, 1500);
-    return () => clearInterval(interval);
+    let active = true;
+    const loadLogs = () => {
+      fetch(`${API_BASE_URL}/api/quantum/terminal-logs`)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (active && data) {
+            if (data.logs && Array.isArray(data.logs)) setLogs(data.logs);
+            if (data.qiskit_version) setQiskitVersion(data.qiskit_version);
+          }
+        })
+        .catch(() => {});
+    };
+    loadLogs();
+    const interval = setInterval(loadLogs, 1500);
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
   }, []);
 
   useEffect(() => {

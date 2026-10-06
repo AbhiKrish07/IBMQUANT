@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Play, Save, Layers, Grid, Cpu, Activity, Info, Eye, CheckCircle2, Zap } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 
@@ -36,7 +36,7 @@ export function CircuitMeasurements() {
   const [shots, setShots] = useState(1024);
   const [executionBackend, setExecutionBackend] = useState('QC Vectorized Fast Statevector (17x Speedup)');
 
-  const fetchQuantumTelemetry = async () => {
+  const fetchQuantumTelemetry = useCallback(async () => {
     setIsExecuting(true);
     try {
       const res = await fetch(`${API_BASE_URL}/api/quantum/kernel-matrix?feature_map=${encodeURIComponent(featureMap)}&qubits=${qubits}&dim=8`);
@@ -52,10 +52,27 @@ export function CircuitMeasurements() {
       console.error('Failed to fetch quantum kernel matrix telemetry:', e);
     }
     setIsExecuting(false);
-  };
+  }, [featureMap, qubits]);
 
   useEffect(() => {
-    fetchQuantumTelemetry();
+    let mounted = true;
+    fetch(`${API_BASE_URL}/api/quantum/kernel-matrix?feature_map=${encodeURIComponent(featureMap)}&qubits=${qubits}&dim=8`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (mounted) {
+          setKernelMatrix(data.matrix || []);
+          setAlignmentScore(data.alignment_score || 0.892);
+          setStatevector(data.statevector || []);
+          setBlochCoords(data.bloch_coords || []);
+          setCircuitDepth(data.circuit_depth || 12);
+          setGateCounts(data.gate_counts || { cx: 8, rz: 16, h: 4 });
+          setExecutionProof(data.execution_proof || null);
+        }
+      })
+      .catch((e) => console.error('Failed to fetch quantum kernel matrix telemetry:', e));
+    return () => {
+      mounted = false;
+    };
   }, [featureMap, qubits]);
 
   return (

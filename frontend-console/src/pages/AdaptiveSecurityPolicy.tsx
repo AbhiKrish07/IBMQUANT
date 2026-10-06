@@ -50,8 +50,29 @@ export function AdaptiveSecurityPolicy() {
   };
 
   useEffect(() => {
-    fetchTransactions();
-    fetch(`${API_BASE_URL}/api/demo-scenarios`).then((res) => res.json()).then((data) => setScenarios(data.scenarios || {})).catch(() => {});
+    let active = true;
+    fetch(`${API_BASE_URL}/api/stream?limit=10`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (active && data.transactions && data.transactions.length > 0) {
+          setTransactions(data.transactions);
+          setSelectedTxn(data.transactions[0]);
+        }
+      })
+      .catch(() => {});
+
+    fetch(`${API_BASE_URL}/api/demo-scenarios`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (active && data.scenarios) {
+          setScenarios(data.scenarios);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   const runScenario = (scenario: any) => {

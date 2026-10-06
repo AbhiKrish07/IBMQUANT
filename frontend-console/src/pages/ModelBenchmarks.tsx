@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Play, Loader2, RefreshCw, BarChart2, ShieldCheck, Zap, TrendingUp, Award } from 'lucide-react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from 'recharts';
 import { API_BASE_URL } from '../config';
@@ -16,7 +16,7 @@ export function ModelBenchmarks() {
   const [selectedNoise, setSelectedNoise] = useState(0.0);
   const [activeTab, setActiveTab] = useState<'roc' | 'cm'>('roc');
 
-  const runBenchmark = async () => {
+  const runBenchmark = useCallback(async () => {
     setIsExecuting(true);
     try {
       const res = await fetch(`${API_BASE_URL}/api/benchmark/run`, {
@@ -46,16 +46,45 @@ export function ModelBenchmarks() {
       console.error(e);
     }
     setIsExecuting(false);
-  };
+  }, [selectedDataset, selectedFeatureMap, selectedQubits, selectedTrainingSize, selectedNoise]);
 
   useEffect(() => {
+    let mounted = true;
     fetch(`${API_BASE_URL}/api/options`)
       .then((res) => res.json())
-      .then((data) => setOptions(data))
+      .then((data) => {
+        if (mounted) setOptions(data);
+      })
       .catch(() => {});
 
-    runBenchmark();
-  }, [selectedDataset, selectedFeatureMap, selectedQubits]);
+    fetch(`${API_BASE_URL}/api/benchmark/run`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        dataset_name: selectedDataset,
+        feature_map: selectedFeatureMap,
+        qubits: selectedQubits,
+        training_size: selectedTrainingSize,
+        noise_rate: selectedNoise,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (mounted && data.job_id) {
+          fetch(`${API_BASE_URL}/api/benchmark/${data.job_id}`)
+            .then((r) => r.json())
+            .then((job) => {
+              if (mounted && job.result) setResults(job.result);
+            })
+            .catch(() => {});
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      mounted = false;
+    };
+  }, [selectedDataset, selectedFeatureMap, selectedQubits, selectedTrainingSize, selectedNoise]);
 
   const formatRocData = () => {
     if (!results || !results.roc_curves) return [];
