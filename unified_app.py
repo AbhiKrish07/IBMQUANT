@@ -54,8 +54,22 @@ INITIALIZATION_READY = threading.Event()
 INITIALIZATION_ERROR = None
 DATASET_MODE = "synthetic"
 DATASET_SETTINGS = {"n_txns": 1500, "fraud_rate": 0.04, "seed": 42}
-BENCHMARK_JOBS = {}
-BENCHMARK_CACHE = {}
+TERMINAL_LOGS = []
+
+def log_terminal(source, message, level="INFO"):
+    timestamp = time.strftime("%H:%M:%S") + f".{int(time.time()*1000)%1000:03d}"
+    entry = {
+        "timestamp": timestamp,
+        "source": source,
+        "message": message,
+        "level": level
+    }
+    TERMINAL_LOGS.append(entry)
+    if len(TERMINAL_LOGS) > 200:
+        TERMINAL_LOGS.pop(0)
+    print(f"[{timestamp}] [{source}] {message}")
+
+log_terminal("SYSTEM", f"Q-UPI Sentinel Master Application booted. Qiskit v{qiskit.__version__} active.")
 
 
 def compliance_report_context():
@@ -639,11 +653,24 @@ def _score_payload(data):
 def _qiskit_proof(features, kernel_latency_ms):
     state = QUANTUM_MODEL.qkernel._state(features)
     circuit = QUANTUM_MODEL.feature_map
+    norm = float(np.linalg.norm(state))
+    log_terminal("QISKIT", f"Bound ZZFeatureMap(n_qubits={QUANTUM_MODEL.n_qubits}, reps=2) features: x={np.round(features[:4], 3)}")
+    log_terminal("STATEVECTOR", f"Simulated Statevector.from_instruction() -> Norm = {round(norm, 6)}, Dim = 16")
+    log_terminal("QSVM KERNEL", f"Evaluated Fidelity Kernel Matrix K_ij in {round(kernel_latency_ms, 2)}ms")
     return {"backend": "Qiskit Statevector simulator", "qiskit_version": qiskit.__version__,
             "feature_map": "ZZFeatureMap", "qubits": QUANTUM_MODEL.n_qubits,
             "circuit_depth": circuit.depth(), "kernel_latency_ms": round(kernel_latency_ms, 3),
-            "statevector_norm": round(float(np.linalg.norm(state)), 6),
+            "statevector_norm": round(norm, 6),
             "simulated": True}
+
+@app.route('/api/quantum/terminal-logs')
+def api_quantum_terminal_logs():
+    return jsonify({
+        "status": "success",
+        "logs": TERMINAL_LOGS,
+        "qiskit_version": qiskit.__version__,
+        "backend": "qiskit-statevector"
+    })
 
 @app.route('/api/score', methods=['POST'])
 def api_score():

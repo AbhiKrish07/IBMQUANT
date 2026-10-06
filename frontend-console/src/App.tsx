@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
+import { QuantumTerminal } from './components/QuantumTerminal';
 import { ModelBenchmarks } from './pages/ModelBenchmarks';
 import { TransactionReplay } from './pages/TransactionReplay';
 import { ExperimentsProvenance } from './pages/ExperimentsProvenance';
@@ -68,14 +69,15 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen w-full bg-white dark:bg-[#0c0c0c] text-gray-900 dark:text-white overflow-hidden">
+    <div className="flex h-screen w-full bg-white dark:bg-[#0c0c0c] text-gray-900 dark:text-white overflow-hidden relative">
       <Sidebar activePage={activePage} setActivePage={setActivePage} isConnected={isConnected} />
-      <div className="flex-1 flex flex-col h-screen overflow-hidden bg-gray-50 dark:bg-[#121212]">
+      <div className="flex-1 flex flex-col h-screen overflow-hidden bg-gray-50 dark:bg-[#121212] pb-10">
         <Header pageTitle={getPageTitle()} isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} isConnected={isConnected} />
-        <main className="flex-1 overflow-y-auto custom-scrollbar">
+        <main className="flex-1 overflow-y-auto custom-scrollbar pb-16">
           {renderPage()}
         </main>
       </div>
+      <QuantumTerminal />
     </div>
   );
 }
