@@ -8,12 +8,35 @@ except (ImportError, OSError):
     from sklearn.ensemble import GradientBoostingClassifier
     HAS_LGBM = False
 from imblearn.over_sampling import SMOTE
-
-# Qiskit Imports
-from qiskit.circuit.library import ZZFeatureMap
-from qiskit_machine_learning.kernels import FidelityQuantumKernel
 from sklearn.svm import SVC
-from qiskit_aer import AerSimulator
+
+# Qiskit Imports with Fallback
+try:
+    from qiskit.circuit.library import ZZFeatureMap
+    from qiskit_machine_learning.kernels import FidelityQuantumKernel
+    from qiskit_aer import AerSimulator
+    HAS_QISKIT = True
+except (ImportError, ModuleNotFoundError):
+    HAS_QISKIT = False
+
+
+class FallbackQuantumKernel:
+    """Fast native statevector fallback when qiskit is not installed."""
+    def __init__(self, n_qubits=4):
+        from qc.tiered_pipeline import QuantumKernel
+        self.qk = QuantumKernel(n_qubits=min(n_qubits, 4))
+
+    def evaluate(self, x_vec, y_vec=None):
+        if y_vec is None:
+            y_vec = x_vec
+        state_x = [self.qk.state(x) for x in x_vec]
+        state_y = [self.qk.state(y) for y in y_vec]
+        K = np.zeros((len(x_vec), len(y_vec)))
+        for i in range(len(x_vec)):
+            for j in range(len(y_vec)):
+                K[i, j] = abs(np.vdot(state_x[i], state_y[j]))**2
+        return K
+
 
 class QUpiSentinelEngine:
     def __init__(self, n_qubits=4):
@@ -31,16 +54,18 @@ class QUpiSentinelEngine:
             self.classical_fast_model = GradientBoostingClassifier(n_estimators=100, random_state=42)
         
         # Stage 2: Resource-Efficient Quantum Kernel (Paper 3 Mandate: Das 2025)
-        # Using linear entanglement keeps circuit depth low, reducing noise susceptibility
-        self.feature_map = ZZFeatureMap(
-            feature_dimension=self.n_qubits, 
-            reps=2, 
-            entanglement='linear' 
-        )
-        
-        # Aer Simulator for fast local execution
-        self.simulator = AerSimulator()
-        self.qkernel = FidelityQuantumKernel(feature_map=self.feature_map)
+        if HAS_QISKIT:
+            self.feature_map = ZZFeatureMap(
+                feature_dimension=self.n_qubits, 
+                reps=2, 
+                entanglement='linear' 
+            )
+            self.simulator = AerSimulator()
+            self.qkernel = FidelityQuantumKernel(feature_map=self.feature_map)
+        else:
+            self.feature_map = None
+            self.simulator = None
+            self.qkernel = FallbackQuantumKernel(n_qubits=self.n_qubits)
         
         # The Quantum Classifier (Using precomputed kernel matrix for probability outputs)
         self.svm = SVC(kernel="precomputed", class_weight="balanced", probability=True, random_state=42)
