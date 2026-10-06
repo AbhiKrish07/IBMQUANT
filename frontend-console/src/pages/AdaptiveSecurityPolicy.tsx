@@ -9,6 +9,7 @@ export function AdaptiveSecurityPolicy() {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [selectedTxn, setSelectedTxn] = useState<any>(null);
   const [evaluation, setEvaluation] = useState<any>(null);
+  const [scenarios, setScenarios] = useState<Record<string, any>>({});
 
   const fetchTransactions = async () => {
     try {
@@ -50,7 +51,13 @@ export function AdaptiveSecurityPolicy() {
 
   useEffect(() => {
     fetchTransactions();
+    fetch(`${API_BASE_URL}/api/demo-scenarios`).then((res) => res.json()).then((data) => setScenarios(data.scenarios || {})).catch(() => {});
   }, []);
+
+  const runScenario = (scenario: any) => {
+    setSelectedTxn(scenario);
+    evaluateSelectedTxn(scenario);
+  };
 
   const handlePolicyChange = (mode: string) => {
     setPolicyMode(mode);
@@ -76,6 +83,15 @@ export function AdaptiveSecurityPolicy() {
             <RefreshCw className="w-3 h-3" /> Refresh Feed
           </button>
         </div>
+      </div>
+
+      <div className="border border-green-800 bg-green-950/20 rounded-xl p-4 flex flex-wrap gap-3 items-center">
+        <span className="text-xs font-mono text-green-300 mr-2">JUDGE DEMO SCENARIOS</span>
+        {Object.entries(scenarios).map(([key, scenario]: [string, any]) => (
+          <button key={key} onClick={() => runScenario(scenario)} className="px-3 py-1.5 rounded border border-green-800 text-xs font-mono text-green-300 hover:bg-green-900/40">
+            {scenario.label}
+          </button>
+        ))}
       </div>
 
       {/* Policy Selector */}

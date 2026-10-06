@@ -71,7 +71,7 @@ export function Sidebar({ activePage, setActivePage, isConnected }: SidebarProps
           </span>
         </div>
         <p className="text-xs text-gray-500 dark:text-zinc-500 leading-relaxed mb-3">
-          {isConnected ? 'API Gateway and Quantum execution core are live on port 32000.' : 'No dataset, runtime or payment gateway connected.'}
+          {isConnected ? 'Unified API and Qiskit statevector core are live on port 8002.' : 'No dataset, runtime or payment gateway connected.'}
         </p>
         <button className=" text-xs flex items-center gap-1 hover:underline text-white">
           Configure environment <ArrowUpRight className="w-3 h-3" />

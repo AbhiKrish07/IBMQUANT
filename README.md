@@ -117,6 +117,22 @@ python3 unified_app.py
 
 Open `http://localhost:8002` in your web browser.
 
+### React analyst console
+
+In a second terminal, launch the console after starting the API above:
+
+```bash
+cd frontend-console
+npm install
+npm run dev
+```
+
+The console uses `http://localhost:8002` by default. Set `VITE_API_BASE_URL`
+when the API is hosted elsewhere. Qiskit is mandatory: the unified backend
+evaluates a real `ZZFeatureMap` with Qiskit's exact statevector simulator.
+There is no classical fallback. `/api/health` reports `initializing`, `ready`,
+or a useful failure message while the models are prepared.
+
 ---
 
 ## 📡 Key REST API Endpoints

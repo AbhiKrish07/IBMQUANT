@@ -18,6 +18,31 @@ from datetime import datetime, timedelta
 import os
 from sklearn.preprocessing import minmax_scale
 
+
+def generate_seeded_synthetic_upi_data(n_txns: int = 1500, fraud_rate: float = 0.04, seed: int = 42) -> pd.DataFrame:
+    """Create deterministic, clearly synthetic UPI-style records for the demo."""
+    rng = np.random.default_rng(seed)
+    fraud_count = max(1, int(round(n_txns * fraud_rate)))
+    labels = np.zeros(n_txns, dtype=int)
+    labels[:fraud_count] = 1
+    rng.shuffle(labels)
+    timestamps = pd.date_range("2026-01-01", periods=n_txns, freq="min")
+    amounts = rng.lognormal(mean=7.3, sigma=.7, size=n_txns)
+    amounts[labels == 1] *= rng.uniform(3, 10, size=fraud_count)
+    fraud_types = np.where(labels == 1, rng.choice(
+        ["mule ring", "velocity burst", "sim swap", "impossible travel", "social engineering"],
+        size=n_txns), "legitimate")
+    return pd.DataFrame({
+        "txn_id": [f"SYN-{seed}-{i:05d}" for i in range(n_txns)],
+        "payer_id": [f"payer{rng.integers(1, 301)}@upi" for _ in range(n_txns)],
+        "payee_id": [f"merchant{rng.integers(1, 151)}@upi" for _ in range(n_txns)],
+        "amount_inr": amounts.round(2), "ts": timestamps.astype(str),
+        "lat": rng.normal(19.07, .25, n_txns), "lon": rng.normal(72.88, .25, n_txns),
+        "is_new_payee": np.where(labels == 1, 1, rng.binomial(1, .12, n_txns)),
+        "device_age_days": np.where(labels == 1, rng.integers(0, 4, n_txns), rng.integers(7, 720, n_txns)),
+        "fraud_type": fraud_types, "label": labels,
+    })
+
 def generate_synthetic_upi_data(
     n_users: int = 1000,
     n_merchants: int = 150,
@@ -42,10 +67,15 @@ def generate_synthetic_upi_data(
         print("Warning: creditcard.csv not found, falling back to basic mock data.")
         return pd.DataFrame({"label": [0, 1]*50, "amount_inr": [100]*100, "is_new_payee": [0]*100, "device_age_days": [10]*100, "lat": [12.0]*100, "lon": [77.0]*100, "ts": ["2026-01-01T00:00:00"]*100, "payer_id": ["1"]*100})
         
-    # Apply Janio's Random Under-Sampling to balance the dataset exactly as requested!
+    # Build the requested volume and class mix.  Previously these arguments were
+    # ignored and the dashboard always received the same 1,968-row 3:1 sample.
     fraud_df = df.loc[df['Class'] == 1]
-    non_fraud_df = df.loc[df['Class'] == 0].sample(n=len(fraud_df)*3, random_state=seed) # 3:1 ratio for realism
-    balanced_df = pd.concat([fraud_df, non_fraud_df]).sample(frac=1, random_state=seed).reset_index(drop=True)
+    non_fraud_df = df.loc[df['Class'] == 0]
+    fraud_count = max(1, min(int(round(n_txns * fraud_rate)), n_txns - 1))
+    legit_count = n_txns - fraud_count
+    sampled_fraud = fraud_df.sample(n=fraud_count, replace=fraud_count > len(fraud_df), random_state=seed)
+    sampled_legit = non_fraud_df.sample(n=legit_count, replace=False, random_state=seed)
+    balanced_df = pd.concat([sampled_fraud, sampled_legit]).sample(frac=1, random_state=seed).reset_index(drop=True)
     
     # Map Kaggle V-Features -> Q-UPI UI Features
     # V14, V12, V10, V4, V11 are most highly correlated with fraud

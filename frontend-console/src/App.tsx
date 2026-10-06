@@ -8,6 +8,7 @@ import { DataSchema } from './pages/DataSchema';
 import { CircuitMeasurements } from './pages/CircuitMeasurements';
 import { QkdChannelLab } from './pages/QkdChannelLab';
 import { AdaptiveSecurityPolicy } from './pages/AdaptiveSecurityPolicy';
+import { API_BASE_URL } from './config';
 
 export default function App() {
   const [activePage, setActivePage] = useState('benchmarks');
@@ -16,11 +17,19 @@ export default function App() {
 
   // Ping Backend on Load
   useEffect(() => {
-    fetch('http://localhost:32000/api/export-report')
-      .then(res => {
-        if (res.ok) setIsConnected(true);
-      })
-      .catch(() => setIsConnected(false));
+    let mounted = true;
+    const checkHealth = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/health`);
+        const health = await response.json();
+        if (mounted) setIsConnected(health.status === 'ready');
+      } catch {
+        if (mounted) setIsConnected(false);
+      }
+    };
+    checkHealth();
+    const timer = window.setInterval(checkHealth, 2000);
+    return () => { mounted = false; window.clearInterval(timer); };
   }, []);
 
   // Apply dark class to body based on state

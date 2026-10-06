@@ -31,8 +31,16 @@ export function ModelBenchmarks() {
         }),
       });
       const data = await res.json();
-      if (data.status === 'success') {
-        setResults(data);
+      if (!res.ok || !data.job_id) throw new Error(data.error || 'Unable to start benchmark');
+      for (let attempt = 0; attempt < 40; attempt += 1) {
+        const jobResponse = await fetch(`${API_BASE_URL}/api/benchmark/${data.job_id}`);
+        const job = await jobResponse.json();
+        if (job.status === 'succeeded') {
+          setResults(job.result);
+          break;
+        }
+        if (job.status === 'failed') throw new Error(job.error || 'Benchmark failed');
+        await new Promise((resolve) => setTimeout(resolve, 250));
       }
     } catch (e) {
       console.error(e);

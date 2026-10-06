@@ -27,6 +27,7 @@ export function CircuitMeasurements() {
   const [blochCoords, setBlochCoords] = useState<BlochCoord[]>([]);
   const [circuitDepth, setCircuitDepth] = useState<number>(12);
   const [gateCounts, setGateCounts] = useState<{ [key: string]: number }>({ cx: 8, rz: 16, h: 4, u2: 4 });
+  const [executionProof, setExecutionProof] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'kernel' | 'statevector' | 'bloch' | 'theory'>('kernel');
 
   // Form parameters
@@ -46,6 +47,7 @@ export function CircuitMeasurements() {
       setBlochCoords(data.bloch_coords || []);
       setCircuitDepth(data.circuit_depth || 12);
       setGateCounts(data.gate_counts || { cx: 8, rz: 16, h: 4 });
+      setExecutionProof(data.execution_proof || null);
     } catch (e) {
       console.error('Failed to fetch quantum kernel matrix telemetry:', e);
     }
@@ -86,6 +88,13 @@ export function CircuitMeasurements() {
           </button>
         </div>
       </div>
+
+      {executionProof && (
+        <div className="rounded-xl border border-green-800 bg-green-950/20 p-4 text-xs font-mono text-green-300 flex flex-wrap gap-x-6 gap-y-2">
+          <span>✓ {executionProof.backend}</span><span>Qiskit {executionProof.qiskit_version}</span>
+          <span>{executionProof.feature_map} · {executionProof.qubits} qubits</span><span>{executionProof.kernel_latency_ms} ms kernel</span>
+        </div>
+      )}
 
       <div className="grid grid-cols-12 gap-6">
         {/* Setup Parameters (Col Span 4) */}

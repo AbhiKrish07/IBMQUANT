@@ -6,7 +6,7 @@ import requests
 import json
 import time
 
-API_URL = "http://localhost:5000/scan"
+API_URL = "http://localhost:8002/api/score"
 
 # Example transactions
 transactions = [
@@ -124,7 +124,7 @@ def main():
     
     # Check if server is running
     try:
-        response = requests.get("http://localhost:5000/health", timeout=2)
+        response = requests.get("http://localhost:8002/api/health", timeout=2)
         if response.status_code == 200:
             print("\n✅ API Server is running")
         else:

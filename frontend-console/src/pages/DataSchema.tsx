@@ -12,6 +12,7 @@ export function DataSchema() {
   const [fraudRate, setFraudRate] = useState(0.04);
   const [seed, setSeed] = useState(42);
   const [drift, setDrift] = useState(true);
+  const [datasetMode, setDatasetMode] = useState<'synthetic' | 'csv_benchmark'>('synthetic');
 
   const handleGenerate = async () => {
     setIsGenerating(true);
@@ -26,6 +27,7 @@ export function DataSchema() {
           fraud_rate: fraudRate,
           seed: seed,
           drift: drift,
+          mode: datasetMode,
         }),
       });
       const data = await res.json();
@@ -73,6 +75,13 @@ export function DataSchema() {
           <Database className="w-4 h-4 text-red-600 dark:text-[#86efac]" /> Generator Parameters (FR-1)
         </h3>
         <div className="grid grid-cols-4 gap-6">
+          <div className="space-y-2">
+            <label className="text-xs text-gray-600 dark:text-zinc-400">Dataset Source</label>
+            <select value={datasetMode} onChange={(e) => setDatasetMode(e.target.value as 'synthetic' | 'csv_benchmark')} className="w-full bg-white dark:bg-[#0c0c0c] border border-gray-300 dark:border-zinc-700 rounded-lg p-2.5 text-sm text-gray-900 dark:text-white">
+              <option value="synthetic">Seeded Synthetic UPI</option>
+              <option value="csv_benchmark">Adapted CSV Benchmark</option>
+            </select>
+          </div>
           <div className="space-y-2">
             <label className="text-xs text-gray-600 dark:text-zinc-400">Transaction Volume</label>
             <select
@@ -128,6 +137,8 @@ export function DataSchema() {
           </div>
         </div>
       </div>
+
+      {datasetSummary?.provenance && <p className="text-xs font-mono text-amber-600 dark:text-amber-300">Data provenance: {datasetSummary.provenance}</p>}
 
       {/* Visual Charts */}
       {datasetSummary && (

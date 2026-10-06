@@ -11,7 +11,7 @@ if not exist "model_v1.pkl" (
     echo.
 )
 
-echo Starting API server at http://localhost:5000
+echo Starting unified Qiskit backend at http://localhost:8002
 echo Press Ctrl+C to stop the server
 echo.
 echo To test the API, run in another terminal:
