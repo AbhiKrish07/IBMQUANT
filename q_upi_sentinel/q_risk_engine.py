@@ -12,7 +12,7 @@ from imblearn.over_sampling import SMOTE
 # Qiskit Imports
 from qiskit.circuit.library import ZZFeatureMap
 from qiskit_machine_learning.kernels import FidelityQuantumKernel
-from qiskit_machine_learning.algorithms import QSVC
+from sklearn.svm import SVC
 from qiskit_aer import AerSimulator
 
 class QUpiSentinelEngine:
@@ -42,8 +42,9 @@ class QUpiSentinelEngine:
         self.simulator = AerSimulator()
         self.qkernel = FidelityQuantumKernel(feature_map=self.feature_map)
         
-        # The Quantum Classifier
-        self.qsvm = QSVC(quantum_kernel=self.qkernel)
+        # The Quantum Classifier (Using precomputed kernel matrix for probability outputs)
+        self.svm = SVC(kernel="precomputed", class_weight="balanced", probability=True, random_state=42)
+        self.X_quantum_train = None
 
     def train_pipeline(self, X_train, y_train):
         """
@@ -66,7 +67,11 @@ class QUpiSentinelEngine:
         X_quantum_train = X_bal[gray_zone_indices]
         y_quantum_train = y_bal[gray_zone_indices]
         
-        self.qsvm.fit(X_quantum_train, y_quantum_train)
+        self.X_quantum_train = X_quantum_train
+        
+        # Precompute the kernel matrix
+        K_train = self.qkernel.evaluate(x_vec=X_quantum_train)
+        self.svm.fit(K_train, y_quantum_train)
         print("[+] Pipeline Training Complete.")
 
     def evaluate_transaction(self, raw_tx_features):
@@ -98,12 +103,19 @@ class QUpiSentinelEngine:
             }
         else:
             # THE GRAY ZONE: Route to Quantum
-            quantum_pred = int(self.qsvm.predict(tx_pca)[0])
+            K_test = self.qkernel.evaluate(x_vec=tx_pca, y_vec=self.X_quantum_train)
+            quantum_pred = int(self.svm.predict(K_test)[0])
+            quantum_prob = float(self.svm.predict_proba(K_test)[0][1])
             verdict = "BLOCKED BY QUANTUM KERNEL" if quantum_pred == 1 else "CLEARED BY QUANTUM KERNEL"
             
             return {
                 "decision": verdict,
                 "stage_used": "Quantum (QSVM)",
                 "classical_score": round(classical_prob, 4),
-                "quantum_score": float(quantum_pred)
+                "quantum_score": round(quantum_prob, 4)
             }
+            
+    def predict_proba(self, X_pca_test):
+        """Helper to expose probabilities directly for the frontend UI"""
+        K_test = self.qkernel.evaluate(x_vec=X_pca_test, y_vec=self.X_quantum_train)
+        return self.svm.predict_proba(K_test)[:, 1]

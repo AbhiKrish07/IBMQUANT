@@ -2,7 +2,7 @@
 Q-UPI Sentinel: Tiered Pipeline Scorer (FR-8 & Section 8)
 Implements 3-Stage Tiered Architecture:
 Stage 1: Fast Classical Model (Gradient Boosting) -> Auto-Approve / Auto-Flag
-Stage 2: Bloq Quantum Kernel SVM on Gray Zone (t_low <= s1 <= t_high)
+Stage 2: Qiskit Quantum Kernel SVM on Gray Zone (t_low <= s1 <= t_high)
 Stage 3: Analyst Review Queue with Explanations
 """
 
@@ -35,7 +35,7 @@ class TieredPipelineScorer:
         elif self.t_low <= s1 <= self.t_high:
             # Stage 2: Gray Zone -> Quantum Kernel SVM Evaluation
             stage_reached = 2
-            routing_reason = "Gray Zone ambiguity -> Routed to Bloq Quantum Kernel"
+            routing_reason = "Gray Zone ambiguity -> Routed to Qiskit Quantum Kernel"
             s2 = float(self.quantum_model.predict_proba(quantum_features_scaled)[0])
 
             if s2 > self.t_quantum:

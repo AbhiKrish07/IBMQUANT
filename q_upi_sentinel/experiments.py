@@ -12,7 +12,7 @@ from q_upi_sentinel.classical_models import ClassicalBaselines
 from q_upi_sentinel.data_generator import generate_synthetic_upi_data
 from q_upi_sentinel.feature_pipeline import (FEATURE_COLS, extract_features,
                                               select_quantum_features)
-from q_upi_sentinel.quantum_models import BloqQuantumKernelModel
+from q_upi_sentinel.q_risk_engine import QUpiSentinelEngine
 
 
 def run_experiment_e1_main_benchmark(seeds=[42, 43, 44, 45, 46]) -> dict:
@@ -24,7 +24,7 @@ def run_experiment_e1_main_benchmark(seeds=[42, 43, 44, 45, 46]) -> dict:
         "RandomForest": [],
         "GradientBoosting": [],
         "RBF-SVM": [],
-        "BloqQuantumKernel": []
+        "QiskitQuantumKernel": []
     }
 
     for seed in seeds:
@@ -46,17 +46,23 @@ def run_experiment_e1_main_benchmark(seeds=[42, 43, 44, 45, 46]) -> dict:
         for mname, mres in res_c.items():
             results[mname].append(mres["pr_auc"])
 
-        # Bloq Quantum Kernel
-        selected_cols, scaler = select_quantum_features(X_train, y_train, n_features=4)
-        X_train_q = scaler.transform(X_train[selected_cols])
-        X_test_q = scaler.transform(X_test[selected_cols])
-
-        # Subsample quantum training set to 150 rows for fast fidelity matrix computation
-        sub_idx = np.random.choice(len(X_train_q), size=min(150, len(X_train_q)), replace=False)
-        bqm = BloqQuantumKernelModel(map_type="ZZ", reps=2, seed=seed)
-        bqm.fit(X_train_q[sub_idx], y_train.iloc[sub_idx].values)
-        res_q = bqm.evaluate(X_test_q, y_test.values)
-        results["BloqQuantumKernel"].append(res_q["pr_auc"])
+        # Qiskit Quantum Kernel Engine
+        pos_idx = np.where(y_train.values == 1)[0]
+        neg_idx = np.where(y_train.values == 0)[0]
+        sub_pos = np.random.choice(pos_idx, size=min(len(pos_idx), 20), replace=False)
+        sub_neg = np.random.choice(neg_idx, size=100, replace=False)
+        sub_idx = np.concatenate([sub_pos, sub_neg])
+        np.random.shuffle(sub_idx)
+        
+        engine = QUpiSentinelEngine(n_qubits=4)
+        engine.train_pipeline(X_train.iloc[sub_idx], y_train.iloc[sub_idx].values)
+        
+        # Evaluate PR AUC
+        X_test_scaled = engine.scaler.transform(X_test)
+        X_test_pca = engine.pca.transform(X_test_scaled)
+        q_probs = engine.predict_proba(X_test_pca)
+        pr_auc = average_precision_score(y_test, q_probs)
+        results["QiskitQuantumKernel"].append(float(pr_auc))
 
     summary = {}
     for model_name, auc_scores in results.items():

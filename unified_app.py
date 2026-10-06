@@ -18,11 +18,11 @@ from flask import Flask, render_template_string, request, jsonify
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(BASE_DIR)
 
-from q_upi.qkd_simulator import simulate_bb84_channel
+from q_upi_sentinel.qkd_simulator import EnterpriseDecoyBB84
 from q_upi_sentinel.data_generator import generate_synthetic_upi_data
 from q_upi_sentinel.feature_pipeline import extract_features, select_quantum_features, FEATURE_COLS
 from q_upi_sentinel.classical_models import ClassicalBaselines
-from q_upi_sentinel.quantum_models import BloqQuantumKernelModel, compute_quantum_kernel_matrix
+from q_upi_sentinel.q_risk_engine import QUpiSentinelEngine
 from q_upi_sentinel.tiered_pipeline import TieredPipelineScorer
 from q_upi_sentinel.experiments import run_experiment_e1_main_benchmark
 from compliance import create_compliance_blueprint
@@ -69,9 +69,8 @@ def initialize_sentinel():
     CLASSICAL_MODELS = ClassicalBaselines(seed=42)
     CLASSICAL_MODELS.fit_all(X, y)
 
-    SELECTED_QCOLS, QUANTUM_SCALER = select_quantum_features(X, y, n_features=4)
-    X_q = QUANTUM_SCALER.transform(X[SELECTED_QCOLS])
-
+    QUANTUM_MODEL = QUpiSentinelEngine(n_qubits=4)
+    
     pos_idx = np.where(y.values == 1)[0]
     neg_idx = np.where(y.values == 0)[0]
     sub_pos = np.random.choice(pos_idx, size=min(len(pos_idx), 30), replace=False)
@@ -79,8 +78,11 @@ def initialize_sentinel():
     sub_idx = np.concatenate([sub_pos, sub_neg])
     np.random.shuffle(sub_idx)
 
-    QUANTUM_MODEL = BloqQuantumKernelModel(map_type="ZZ", reps=2, seed=42)
-    QUANTUM_MODEL.fit(X_q[sub_idx], y.iloc[sub_idx].values)
+    QUANTUM_MODEL.train_pipeline(X.iloc[sub_idx], y.iloc[sub_idx].values)
+    
+    # Generate X_q from the trained model's pipeline for batch evaluation
+    X_q_scaled = QUANTUM_MODEL.scaler.transform(X)
+    X_q = QUANTUM_MODEL.pca.transform(X_q_scaled)
 
     gb_model = CLASSICAL_MODELS.trained_models["GradientBoosting"]
     TIERED_SCORER = TieredPipelineScorer(gb_model, QUANTUM_MODEL, t_low=0.20, t_high=0.80, t_quantum=0.50)
@@ -100,25 +102,32 @@ HTML_FRONTEND = """
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #090d16;
-            --surface: #111726;
-            --surface-card: #172034;
-            --border: #232e47;
+            --bg: #030712;
+            --surface: rgba(17, 24, 39, 0.65);
+            --surface-card: rgba(31, 41, 55, 0.6);
+            --border: rgba(255, 255, 255, 0.1);
             --primary: #6366f1;
-            --primary-glow: rgba(99, 102, 241, 0.4);
-            --accent: #06b6d4;
+            --primary-glow: rgba(99, 102, 241, 0.6);
+            --accent: #0ea5e9;
             --success: #10b981;
             --warning: #f59e0b;
             --danger: #ef4444;
-            --danger-glow: rgba(239, 68, 68, 0.4);
-            --text: #f3f4f6;
-            --text-dim: #9ca3af;
+            --danger-glow: rgba(239, 68, 68, 0.6);
+            --text: #f8fafc;
+            --text-dim: #94a3b8;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; padding: 20px; min-height: 100vh; }
+        body { 
+            background: radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.12), transparent 45%), radial-gradient(circle at 85% 30%, rgba(14, 165, 233, 0.15), transparent 45%), var(--bg); 
+            background-attachment: fixed;
+            color: var(--text); 
+            font-family: 'Inter', sans-serif; 
+            padding: 20px; 
+            min-height: 100vh; 
+        }
 
-        .top-navbar { display: flex; justify-content: space-between; align-items: center; background: var(--surface); border: 1px solid var(--border); padding: 14px 24px; border-radius: 16px; margin-bottom: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .top-navbar { display: flex; justify-content: space-between; align-items: center; background: var(--surface); border: 1px solid var(--border); padding: 14px 24px; border-radius: 16px; margin-bottom: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
         .logo-group { display: flex; align-items: center; gap: 14px; }
         .logo-badge { width: 42px; height: 42px; background: linear-gradient(135deg, #ef4444, #6366f1); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; box-shadow: 0 0 18px var(--danger-glow); }
         .logo-title { font-family: 'Outfit', sans-serif; font-size: 22px; font-weight: 700; background: linear-gradient(to right, #ffffff, #93c5fd); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
@@ -128,7 +137,8 @@ HTML_FRONTEND = """
         .nav-btn { background: transparent; color: var(--text-dim); border: none; padding: 8px 18px; font-weight: 600; font-size: 13px; cursor: pointer; border-radius: 8px; transition: all 0.2s; }
         .nav-btn.active, .nav-btn:hover { background: var(--surface-card); color: white; border: 1px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
 
-        .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); margin-bottom: 24px; }
+        .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); margin-bottom: 24px; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease; }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 14px 40px rgba(0,0,0,0.6); }
         .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .card-title { font-family: 'Outfit', sans-serif; font-size: 17px; font-weight: 700; color: #93c5fd; display: flex; align-items: center; gap: 10px; }
 
@@ -149,7 +159,7 @@ HTML_FRONTEND = """
         input { width: 100%; background: var(--surface-card); border: 1px solid var(--border); color: white; padding: 10px 12px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 13px; }
 
         /* SIDE-BY-SIDE MODEL COMPARISON BARS */
-        .model-compare-box { background: var(--surface-card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 20px; }
+        .model-compare-box { background: var(--surface-card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 20px; backdrop-filter: blur(8px); }
         .model-bar-row { margin-bottom: 16px; }
         .model-bar-header { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
         .model-bar-bg { background: #070a12; height: 12px; border-radius: 6px; overflow: hidden; position: relative; }
@@ -185,7 +195,7 @@ HTML_FRONTEND = """
             <div class="logo-badge">⚛️</div>
             <div>
                 <div class="logo-title">Q-UPI Sentinel Quantum vs Classical Platform</div>
-                <div class="logo-sub">Direct Side-by-Side Model Comparison & Qiskit/Bloq Quantum Circuit Inspector</div>
+                <div class="logo-sub">Direct Side-by-Side Model Comparison & Qiskit Quantum Circuit Inspector</div>
             </div>
         </div>
 
@@ -232,7 +242,7 @@ HTML_FRONTEND = """
                     </div>
                 </div>
 
-                <button class="btn-act btn-escalate" onclick="compareModels()">⚔️ Evaluate All 5 Models (Classical vs Bloq Quantum)</button>
+                <button class="btn-act btn-escalate" onclick="compareModels()">⚔️ Evaluate All 5 Models (Classical vs Qiskit Quantum)</button>
             </div>
 
             <!-- SIDE-BY-SIDE MODEL PROBABILITIES -->
@@ -243,10 +253,10 @@ HTML_FRONTEND = """
                 </div>
 
                 <div class="model-compare-box">
-                    <!-- Bloq Quantum Kernel SVM -->
+                    <!-- Qiskit Quantum Kernel SVM -->
                     <div class="model-bar-row">
                         <div class="model-bar-header">
-                            <span style="color:var(--accent);">⚛️ Bloq Quantum Kernel SVM (Stage 2 Engine)</span>
+                            <span style="color:var(--accent);">⚛️ Qiskit Quantum Kernel SVM (Stage 2 Engine)</span>
                             <strong id="val_q">--%</strong>
                         </div>
                         <div class="model-bar-bg"><div id="bar_q" class="model-bar-fill fill-quantum" style="width:0%;"></div></div>
@@ -289,7 +299,7 @@ HTML_FRONTEND = """
     <div id="tab-circuit" class="tab-content">
         <div class="card">
             <div class="card-header">
-                <div class="card-title">⚛️ Qiskit & Bloq 4-Qubit ZZFeatureMap Circuit Diagram</div>
+                <div class="card-title">⚛️ Qiskit 4-Qubit ZZFeatureMap Circuit Diagram</div>
                 <span style="font-size: 11px; color: var(--accent);">reps=2, entanglement='linear'</span>
             </div>
 
@@ -432,7 +442,7 @@ HTML_FRONTEND = """
             const probs = data.all_model_probabilities;
 
             // Update Side-by-Side Model Comparison Progress Bars
-            const qPct = (probs.BloqQuantumKernel * 100).toFixed(1);
+            const qPct = (probs.QiskitQuantumKernel * 100).toFixed(1);
             document.getElementById('val_q').innerText = `${qPct}%`;
             document.getElementById('bar_q').style.width = `${qPct}%`;
 
@@ -452,7 +462,7 @@ HTML_FRONTEND = """
             if (data.tiered_result.stage_reached === 2) {
                 badge.style.background = 'rgba(6, 182, 212, 0.2)';
                 badge.style.color = '#38bdf8';
-                badge.innerText = 'STAGE 2: BLOQ QUANTUM KERNEL EVALUATED (GRAY ZONE)';
+                badge.innerText = 'STAGE 2: QISKIT QUANTUM KERNEL EVALUATED (GRAY ZONE)';
             } else {
                 badge.style.background = 'rgba(16, 185, 129, 0.2)';
                 badge.style.color = '#34d399';
@@ -476,7 +486,7 @@ HTML_FRONTEND = """
             for (const [mname, mdata] of Object.entries(data.e1_benchmark)) {
                 html += `<tr>
                     <td><strong>${mname}</strong></td>
-                    <td>${mname.includes('Bloq') ? 'Bloq Quantum Fidelity Kernel' : 'Classical Scikit-Learn'}</td>
+                    <td>${mname.includes('Qiskit') ? 'Qiskit Quantum Fidelity Kernel' : 'Classical Scikit-Learn'}</td>
                     <td><strong style="color:#3fb950;">${mdata.mean_pr_auc}</strong></td>
                     <td>[${mdata.ci_95_lower} - ${mdata.ci_95_upper}]</td>
                 </tr>`;
@@ -519,8 +529,9 @@ def api_compare():
     ]])
 
     class_feats_scaled = CLASSICAL_MODELS.scaler.transform(class_feats)
-    quant_feats_raw = pd.DataFrame([[amount_log, float(vel1h), speed, ring_score]], columns=SELECTED_QCOLS)
-    quant_feats_scaled = QUANTUM_SCALER.transform(quant_feats_raw)
+    
+    class_feats_q_scaled = QUANTUM_MODEL.scaler.transform(class_feats)
+    quant_feats_scaled = QUANTUM_MODEL.pca.transform(class_feats_q_scaled)
 
     # Evaluate Classical Models
     lr_prob = float(CLASSICAL_MODELS.trained_models["LogisticRegression"].predict_proba(class_feats_scaled)[0, 1])
@@ -536,7 +547,7 @@ def api_compare():
 
     return jsonify({
         "all_model_probabilities": {
-            "BloqQuantumKernel": round(quantum_prob, 4),
+            "QiskitQuantumKernel": round(quantum_prob, 4),
             "GradientBoosting": round(gb_prob, 4),
             "RandomForest": round(rf_prob, 4),
             "LogisticRegression": round(lr_prob, 4),
@@ -546,7 +557,7 @@ def api_compare():
         "quantum_circuit_info": {
             "circuit": "Qiskit ZZFeatureMap(n_qubits=4, reps=2, entanglement='linear')",
             "hilbert_dimension": 16,
-            "engine": QUANTUM_MODEL.engine_name
+            "engine": "QUpiSentinelEngine (Qiskit)"
         }
     })
 
@@ -557,13 +568,17 @@ def api_score():
 @app.route('/api/qkd')
 def api_qkd():
     eve = request.args.get("eve_present", "false").lower() == "true"
-    return jsonify(simulate_bb84_channel(num_bits=256, eve_present=eve))
+    engine = EnterpriseDecoyBB84(n_pulses=50_000)
+    res = engine.simulate_transmission(attack="INTERCEPT_RESEND" if eve else "NONE")
+    return jsonify(res)
 
 @app.route('/api/metrics')
 def api_metrics():
     X = FEATURE_DF[FEATURE_COLS]
     y = FEATURE_DF["label"]
-    X_q = QUANTUM_SCALER.transform(X[SELECTED_QCOLS])
+    
+    X_q_scaled = QUANTUM_MODEL.scaler.transform(X)
+    X_q = QUANTUM_MODEL.pca.transform(X_q_scaled)
 
     tiered_res = TIERED_SCORER.batch_evaluate(X, X_q, y.values)
     e1_benchmark = run_experiment_e1_main_benchmark(seeds=[42, 43])

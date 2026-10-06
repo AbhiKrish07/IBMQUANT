@@ -19,12 +19,12 @@ from q_upi_sentinel.data_generator import generate_synthetic_upi_data
 from q_upi_sentinel.experiments import run_experiment_e1_main_benchmark
 from q_upi_sentinel.feature_pipeline import (FEATURE_COLS, extract_features,
                                               select_quantum_features)
-from q_upi_sentinel.quantum_models import BloqQuantumKernelModel
+from q_upi_sentinel.q_risk_engine import QUpiSentinelEngine
 from q_upi_sentinel.tiered_pipeline import TieredPipelineScorer
 
 app = FastAPI(
     title="Q-UPI Sentinel API",
-    description="Quantum-Kernel Fraud Detection Platform on Bloq (SRS v1.0 Spec)",
+    description="Quantum-Kernel Fraud Detection Platform on Qiskit (SRS v1.0 Spec)",
     version="1.0.0"
 )
 
@@ -80,8 +80,8 @@ def initialize_default_pipeline():
     
     sub_idx = get_stratified_subsample(X_q, y, target_size=120)
 
-    QUANTUM_MODEL = BloqQuantumKernelModel(map_type="ZZ", reps=2, seed=42)
-    QUANTUM_MODEL.fit(X_q[sub_idx], y.iloc[sub_idx].values)
+    QUANTUM_MODEL = QUpiSentinelEngine(n_qubits=4)
+    QUANTUM_MODEL.train_pipeline(X.iloc[sub_idx], y.iloc[sub_idx].values)
 
     gb_model = CLASSICAL_BASELINES.trained_models["GradientBoosting"]
     TIERED_SCORER = TieredPipelineScorer(gb_model, QUANTUM_MODEL, t_low=0.20, t_high=0.80)
@@ -137,7 +137,7 @@ def get_analyst_console():
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <div>
                 <h1>🛡️ Q-UPI Sentinel <span class="badge">SRS v1.0 Hackathon Build</span></h1>
-                <p style="color: #8b949e; margin: 0;">Quantum-Kernel Fraud Detection Benchmark Platform on Bloq</p>
+                <p style="color: #8b949e; margin: 0;">Quantum-Kernel Fraud Detection Benchmark Platform on Qiskit</p>
             </div>
             <button onclick="loadMetrics()">🔄 Refresh Metrics</button>
         </div>
@@ -180,7 +180,7 @@ def get_analyst_console():
                 for (const [mname, mdata] of Object.entries(data.e1_benchmark)) {
                     html += `<tr>
                         <td><strong>${mname}</strong></td>
-                        <td>${mname.includes('Bloq') ? 'Bloq/Qiskit Quantum' : 'Classical Sklearn'}</td>
+                        <td>${mname.includes('Qiskit') ? 'Qiskit Quantum' : 'Classical Sklearn'}</td>
                         <td><strong style="color:#3fb950;">${mdata.mean_pr_auc}</strong></td>
                         <td>[${mdata.ci_95_lower} - ${mdata.ci_95_upper}]</td>
                     </tr>`;
