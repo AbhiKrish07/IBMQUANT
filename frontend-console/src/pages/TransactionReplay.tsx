@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Play, Pause, RefreshCw, Network } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 
@@ -12,7 +12,7 @@ export function TransactionReplay() {
   const [stageFilter, setStageFilter] = useState('all');
   const [typologyFilter, setTypologyFilter] = useState('all');
 
-  const fetchStreamData = async () => {
+  const fetchStreamData = useCallback(async () => {
     try {
       const res = await fetch(
         `${API_BASE_URL}/api/stream?stage_filter=${stageFilter}&typology=${typologyFilter}&limit=25`
@@ -20,17 +20,17 @@ export function TransactionReplay() {
       const data = await res.json();
       setTransactions(data.transactions);
       setNetworkGraph(data.network_graph);
-      if (data.transactions.length > 0 && !selectedTx) {
-        setSelectedTx(data.transactions[0]);
+      if (data.transactions.length > 0) {
+        setSelectedTx((prev: any) => prev || data.transactions[0]);
       }
     } catch (e) {
       console.error(e);
     }
-  };
+  }, [stageFilter, typologyFilter]);
 
   useEffect(() => {
     fetchStreamData();
-  }, [stageFilter, typologyFilter]);
+  }, [fetchStreamData]);
 
   useEffect(() => {
     let timer: any;
@@ -40,7 +40,7 @@ export function TransactionReplay() {
       }, 1500);
     }
     return () => clearInterval(timer);
-  }, [isPlaying, stageFilter, typologyFilter]);
+  }, [isPlaying, fetchStreamData]);
 
   return (
     <div className="p-8 max-w-[1400px] mx-auto space-y-6">
