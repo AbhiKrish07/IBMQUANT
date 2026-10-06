@@ -1,244 +1,236 @@
-import React from 'react';
-import { Upload, Play, Pause, Filter, List } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Play, Pause, RefreshCw, Network } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 export function TransactionReplay() {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [selectedTx, setSelectedTx] = useState<any>(null);
+  const [networkGraph, setNetworkGraph] = useState<any>(null);
+
+  // Filters
+  const [stageFilter, setStageFilter] = useState('all');
+  const [typologyFilter, setTypologyFilter] = useState('all');
+
+  const fetchStreamData = async () => {
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/api/stream?stage_filter=${stageFilter}&typology=${typologyFilter}&limit=25`
+      );
+      const data = await res.json();
+      setTransactions(data.transactions);
+      setNetworkGraph(data.network_graph);
+      if (data.transactions.length > 0 && !selectedTx) {
+        setSelectedTx(data.transactions[0]);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useEffect(() => {
+    fetchStreamData();
+  }, [stageFilter, typologyFilter]);
+
+  useEffect(() => {
+    let timer: any;
+    if (isPlaying) {
+      timer = setInterval(() => {
+        fetchStreamData();
+      }, 1500);
+    }
+    return () => clearInterval(timer);
+  }, [isPlaying, stageFilter, typologyFilter]);
+
   return (
     <div className="p-8 max-w-[1400px] mx-auto space-y-6">
       {/* Title Section */}
       <div className="flex justify-between items-start mb-8">
         <div>
-          <div className="text-[10px] font-mono text-red-600 dark:text-[#86efac] tracking-widest mb-3 uppercase">Q-UPI / Security Gateway</div>
-          <h1 className="text-4xl font-['VT323'] tracking-widest text-gray-900 dark:text-white mb-2">Transaction Replay</h1>
-          <p className="text-sm text-gray-600 dark:text-zinc-400">Import a financial dataset, replay events and inspect each security decision.</p>
+          <div className="text-[10px] font-mono text-red-600 dark:text-[#86efac] tracking-widest mb-3 uppercase">
+            Q-UPI / Security Gateway
+          </div>
+          <h1 className="text-4xl font-['VT323'] tracking-widest text-gray-900 dark:text-white mb-2">
+            Transaction Replay Stream
+          </h1>
+          <p className="text-sm text-gray-600 dark:text-zinc-400">
+            Replay synthetic UPI transactions through the 3-stage tiered pipeline in real-time (FR-8 & FR-11).
+          </p>
         </div>
         <div className="flex gap-3">
-          <button className="px-4 py-2 rounded-lg bg-red-600 dark:bg-[#86efac] text-white font-medium text-sm flex items-center gap-2 hover:bg-red-500 dark:bg-[#4ade80] transition">
-            <Upload className="w-4 h-4" /> Import dataset
+          <button
+            onClick={() => setIsPlaying(!isPlaying)}
+            className={`px-4 py-2 rounded-lg text-white font-medium text-sm flex items-center gap-2 transition ${
+              isPlaying
+                ? 'bg-amber-600 hover:bg-amber-700'
+                : 'bg-red-600 dark:bg-[#86efac] dark:text-gray-900 hover:bg-red-500'
+            }`}
+          >
+            {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+            {isPlaying ? 'Pause Replay' : 'Start Live Replay'}
           </button>
         </div>
       </div>
 
-      {/* Banner */}
-      <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-zinc-500 font-mono">
-        <div className="px-2 py-1 rounded border border-gray-200 dark:border-[#27272a] bg-gray-50 dark:bg-[#121212] flex items-center gap-2 uppercase">
-          <div className="w-1.5 h-1.5 rounded-full bg-zinc-500"></div> Replay not started
+      {/* Filter Controls */}
+      <div className="border border-gray-200 dark:border-[#27272a] bg-white dark:bg-[#0c0c0c] shadow-sm rounded-xl p-6">
+        <div className="grid grid-cols-3 gap-6">
+          <div className="space-y-2">
+            <label className="text-xs text-gray-600 dark:text-zinc-400">Stage Filter</label>
+            <select
+              value={stageFilter}
+              onChange={(e) => setStageFilter(e.target.value)}
+              className="w-full bg-white dark:bg-[#0c0c0c] border border-gray-300 dark:border-zinc-700 rounded-lg p-2.5 text-sm text-gray-900 dark:text-white"
+            >
+              <option value="all">All Stages (Full Traffic)</option>
+              <option value="stage1">Stage 1 Only (Classical Fast-Path)</option>
+              <option value="stage2">Stage 2 Only (Quantum Gray Zone)</option>
+              <option value="flagged">Flagged Fraud Only</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs text-gray-600 dark:text-zinc-400">Fraud Typology Filter</label>
+            <select
+              value={typologyFilter}
+              onChange={(e) => setTypologyFilter(e.target.value)}
+              className="w-full bg-white dark:bg-[#0c0c0c] border border-gray-300 dark:border-zinc-700 rounded-lg p-2.5 text-sm text-gray-900 dark:text-white"
+            >
+              <option value="all">All Fraud Typologies</option>
+              <option value="mule ring">Mule Ring (Fan-In/Out)</option>
+              <option value="velocity burst">Velocity Burst</option>
+              <option value="sim swap">SIM Swap Takeover</option>
+              <option value="impossible travel">Impossible Travel</option>
+            </select>
+          </div>
+
+          <div className="space-y-2 flex items-end">
+            <button
+              onClick={fetchStreamData}
+              className="w-full p-2.5 rounded-lg border border-gray-300 dark:border-zinc-700 bg-black dark:bg-[#1e1e1e] hover:bg-gray-800 text-sm font-medium text-white flex items-center justify-center gap-2"
+            >
+              <RefreshCw className="w-4 h-4" /> Fetch Latest Stream
+            </button>
+          </div>
         </div>
-        <span>Results appear only after a reproducible experiment. No live payment connection.</span>
       </div>
 
       <div className="grid grid-cols-12 gap-6">
-        
-        {/* Replay Source (Col Span 8) */}
+        {/* Transaction Stream Table (Col Span 8) */}
         <div className="col-span-8 border border-gray-200 dark:border-[#27272a] bg-white dark:bg-[#0c0c0c] shadow-sm rounded-xl p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="font-semibold text-gray-900 dark:text-white">Replay source</h3>
-            <span className="text-[10px] font-mono text-gray-500 dark:text-zinc-500 uppercase border border-gray-200 dark:border-[#27272a] px-2 py-0.5 rounded">Dataset Empty</span>
-          </div>
-          <div className="grid grid-cols-2 gap-6 mb-6">
-            <div className="space-y-2">
-              <label className="text-xs text-gray-600 dark:text-zinc-400">Financial transaction dataset</label>
-              <select className="w-full bg-white dark:bg-[#0c0c0c] border border-gray-300 dark:border-zinc-700 rounded-lg p-2.5 text-sm text-gray-900 dark:text-white appearance-none">
-                <option>Select or import dataset</option>
-              </select>
-              <p className="text-[10px] text-gray-500 dark:text-zinc-500">CSV or Parquet - map source fields before replay</p>
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs text-gray-600 dark:text-zinc-400">Feature pipeline</label>
-              <select className="w-full bg-white dark:bg-[#0c0c0c] border border-gray-200 dark:border-[#27272a] rounded-lg p-2.5 text-sm text-gray-900 dark:text-white appearance-none">
-                <option>Not configured</option>
-              </select>
-              <p className="text-[10px] text-gray-500 dark:text-zinc-500">Versioned transformations shared with benchmarks</p>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-3 gap-6">
-            <div className="space-y-2">
-              <label className="text-xs text-gray-600 dark:text-zinc-400">Event ordering</label>
-              <select className="w-full bg-white dark:bg-[#0c0c0c] border border-gray-300 dark:border-zinc-700 rounded-lg p-2.5 text-sm text-gray-900 dark:text-white appearance-none">
-                <option>Source event time</option>
-              </select>
-              <p className="text-[10px] text-gray-500 dark:text-zinc-500">Editable setup default</p>
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs text-gray-600 dark:text-zinc-400">Replay speed</label>
-              <select className="w-full bg-white dark:bg-[#0c0c0c] border border-gray-200 dark:border-[#27272a] rounded-lg p-2.5 text-sm text-gray-900 dark:text-white appearance-none">
-                <option>1x original timing</option>
-              </select>
-              <p className="text-[10px] text-gray-500 dark:text-zinc-500">Editable setup default</p>
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs text-gray-600 dark:text-zinc-400">Inference model run</label>
-              <select className="w-full bg-white dark:bg-[#0c0c0c] border border-gray-200 dark:border-[#27272a] rounded-lg p-2.5 text-sm text-gray-900 dark:text-white appearance-none">
-                <option>Select completed run</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="mt-8 pt-4 border-t border-gray-100 dark:border-zinc-800/50 flex justify-between text-[10px] font-mono text-gray-500 dark:text-zinc-500 uppercase">
-            <span>VERSION -- · SHA-256 -- · MAPPED RECORDS --</span>
-            <a href="#" className="text-red-600 dark:text-[#86efac] hover:underline flex items-center gap-1">Open Data Schema ↗</a>
+          <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Replayed Event Stream</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs font-mono">
+              <thead className="text-[10px] text-gray-500 uppercase border-b border-gray-200 dark:border-[#27272a]">
+                <tr>
+                  <th className="text-left pb-2">Txn ID</th>
+                  <th className="text-left pb-2">Payer → Payee</th>
+                  <th className="text-left pb-2">Amount</th>
+                  <th className="text-left pb-2">Stage 1</th>
+                  <th className="text-left pb-2">Stage 2 (Quantum)</th>
+                  <th className="text-left pb-2">Decision</th>
+                </tr>
+              </thead>
+              <tbody className="text-gray-800 dark:text-zinc-300">
+                {transactions.map((tx) => (
+                  <tr
+                    key={tx.txn_id}
+                    onClick={() => setSelectedTx(tx)}
+                    className={`border-b border-gray-100 dark:border-zinc-800/50 cursor-pointer hover:bg-red-50/30 dark:hover:bg-zinc-800/50 transition ${
+                      selectedTx?.txn_id === tx.txn_id ? 'bg-red-50 dark:bg-green-950/30 font-bold' : ''
+                    }`}
+                  >
+                    <td className="py-2.5 font-sans">{tx.txn_id}</td>
+                    <td className="py-2.5 text-gray-500">{tx.payer_id.split('@')[0]} → {tx.payee_id.split('@')[0]}</td>
+                    <td className="py-2.5">₹{tx.amount_inr}</td>
+                    <td className="py-2.5">{tx.s1_score}</td>
+                    <td className="py-2.5 text-red-600 dark:text-[#86efac]">
+                      {tx.s2_score ? `${tx.s2_score}` : '— (Bypassed)'}
+                    </td>
+                    <td className="py-2.5">
+                      <span
+                        className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                          tx.decision.includes('FLAGGED') || tx.decision.includes('BLOCKED')
+                            ? 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400'
+                            : 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400'
+                        }`}
+                      >
+                        {tx.decision}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
 
-        {/* Replay Control (Col Span 4) */}
-        <div className="col-span-4 border border-gray-200 dark:border-[#27272a] bg-white dark:bg-[#0c0c0c] shadow-sm rounded-xl p-6 flex flex-col">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="font-semibold text-gray-900 dark:text-white">Replay control</h3>
-            <span className="text-[10px] font-mono text-gray-500 dark:text-zinc-500 uppercase border border-gray-200 dark:border-[#27272a] px-2 py-0.5 rounded">Not Started</span>
-          </div>
-          <div className="space-y-4 mb-8 flex-1">
-            <div className="flex justify-between items-center border-b border-gray-100 dark:border-zinc-800/50 pb-3">
-              <span className="text-xs text-gray-600 dark:text-zinc-400">Gateway connection</span>
-              <span className="font-mono text-xs text-gray-500 dark:text-zinc-500">Disconnected</span>
-            </div>
-            <div className="flex justify-between items-center border-b border-gray-100 dark:border-zinc-800/50 pb-3">
-              <span className="text-xs text-gray-600 dark:text-zinc-400">Policy version</span>
-              <span className="font-mono text-xs text-gray-500 dark:text-zinc-500">No validated policy</span>
-            </div>
-          </div>
-          
-          <div className="flex gap-3 mb-4">
-            <button className="flex-1 py-2.5 rounded-lg border border-gray-300 dark:border-zinc-700 bg-black dark:bg-[#1e1e1e]  hover:bg-gray-800 dark:bg-zinc-800 text-sm font-medium  flex items-center justify-center gap-2 cursor-not-allowed text-white">
-              <Play className="w-4 h-4" /> Start replay
-            </button>
-            <button className="flex-1 py-2.5 rounded-lg border border-gray-200 dark:border-[#27272a] bg-gray-800 dark:bg-zinc-800 text-sm font-medium  flex items-center justify-center gap-2 cursor-not-allowed text-white">
-              <Pause className="w-4 h-4" /> Pause
-            </button>
-          </div>
-          <div className="bg-white dark:bg-[#0c0c0c] border border-gray-200 dark:border-[#27272a] rounded-lg p-3 flex items-start gap-3">
-            <div className="w-4 h-4 rounded-full border border-gray-300 dark:border-zinc-700 flex items-center justify-center flex-shrink-0">
-               <span className="text-[8px] text-gray-500 dark:text-zinc-500">i</span>
-            </div>
-            <p className="text-[10px] text-gray-600 dark:text-zinc-400 leading-relaxed">
-              Import and validate a dataset, select a completed model run and configure a policy before starting replay.
-            </p>
-          </div>
-        </div>
-
-        {/* Transaction Events (Col Span 8) */}
-        <div className="col-span-8 border border-gray-200 dark:border-[#27272a] bg-white dark:bg-[#0c0c0c] shadow-sm rounded-xl p-6 flex flex-col">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="font-semibold text-gray-900 dark:text-white">Transaction events</h3>
-          </div>
-          <div className="flex justify-between items-center border-b border-gray-200 dark:border-[#27272a] mb-4 text-sm">
-            <div className="flex gap-6">
-              <button className="pb-3  border-b-2 border-red-600 dark:border-[#86efac] font-medium text-white">All events</button>
-              <button className="pb-3  hover: text-white">Review queue</button>
-              <button className="pb-3  hover: text-white">Blocked</button>
-            </div>
-            <button className="pb-3  hover: flex items-center gap-2 text-xs text-white">
-              <Filter className="w-3 h-3" /> Filter
-            </button>
-          </div>
-          
-          <table className="w-full text-sm mb-4">
-            <thead className="text-[10px] font-mono text-gray-500 dark:text-zinc-500 border-b border-gray-100 dark:border-zinc-800/50 uppercase">
-              <tr>
-                <th className="text-left font-normal pb-3">Transaction ID</th>
-                <th className="text-left font-normal pb-3">Event time</th>
-                <th className="text-left font-normal pb-3">Amount / unit</th>
-                <th className="text-left font-normal pb-3">Risk</th>
-                <th className="text-left font-normal pb-3">Model run</th>
-                <th className="text-left font-normal pb-3">Policy decision</th>
-                <th className="text-left font-normal pb-3">Timing / ms</th>
-              </tr>
-            </thead>
-          </table>
-          
-          <div className="flex-1 bg-white dark:bg-[#0c0c0c] border border-gray-100 dark:border-zinc-800/50 rounded-lg flex flex-col items-center justify-center min-h-[250px] mb-4">
-             <div className="w-10 h-10 rounded-lg border border-gray-200 dark:border-[#27272a] flex items-center justify-center bg-gray-50 dark:bg-[#121212] mb-3">
-               <List className="w-5 h-5 text-gray-400 dark:text-zinc-600" />
-             </div>
-             <p className="font-medium text-gray-900 dark:text-white mb-1">No dataset loaded</p>
-             <p className="text-xs text-gray-500 dark:text-zinc-500 mb-4 text-center max-w-sm">Import a financial transaction dataset to begin. Events, model risk and policy decisions will appear here after replay starts.</p>
-             <button className="px-4 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-black dark:bg-[#1e1e1e] hover:bg-gray-800 dark:bg-zinc-800  text-sm font-medium  flex items-center gap-2 hover:bg-gray-100 dark:bg-zinc-800 transition text-white">
-               <Upload className="w-4 h-4" /> Select dataset
-             </button>
-          </div>
-
-          <div className="flex justify-between text-[10px] font-mono text-gray-400 dark:text-zinc-600 uppercase">
-            <span>PROCESSED -- · REVIEW -- · BLOCKED --</span>
-            <span>LAST EVENT --</span>
-          </div>
-        </div>
-
-        {/* Event Inspector (Col Span 4) */}
-        <div className="col-span-4 border border-gray-200 dark:border-[#27272a] bg-white dark:bg-[#0c0c0c] shadow-sm rounded-xl p-6 flex flex-col">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="font-semibold text-gray-900 dark:text-white">Event inspector</h3>
-            <span className="text-[10px] font-mono text-gray-500 dark:text-zinc-500 uppercase border border-gray-200 dark:border-[#27272a] px-2 py-0.5 rounded">No Selection</span>
-          </div>
-          <div className="flex gap-6 border-b border-gray-200 dark:border-[#27272a] mb-4 text-sm">
-            <button className="pb-3  border-b-2 border-zinc-500 font-medium text-white">Features</button>
-            <button className="pb-3  hover: text-white">Decision trace</button>
-          </div>
-          
-          <p className="text-xs text-gray-600 dark:text-zinc-400 mb-6 leading-relaxed">
-            Select a replayed transaction to inspect the original event, derived features and decision explanation.
-          </p>
-
-          <table className="w-full text-xs">
-            <thead className="text-[10px] font-mono text-gray-500 dark:text-zinc-500 border-b border-gray-100 dark:border-zinc-800/50 uppercase">
-              <tr>
-                <th className="text-left font-normal pb-2">Feature group</th>
-                <th className="text-left font-normal pb-2">Values</th>
-              </tr>
-            </thead>
-            <tbody className="text-gray-600 dark:text-zinc-400 font-mono">
-              <tr className="border-b border-gray-200 dark:border-[#27272a]/30">
-                <td className="py-3 font-sans">Payment context</td>
-                <td className="py-3 text-gray-400 dark:text-zinc-600">Awaiting transaction</td>
-              </tr>
-              <tr className="border-b border-gray-200 dark:border-[#27272a]/30">
-                <td className="py-3 font-sans">Amount / currency</td>
-                <td className="py-3 text-gray-400 dark:text-zinc-600">Awaiting transaction</td>
-              </tr>
-              <tr className="border-b border-gray-200 dark:border-[#27272a]/30">
-                <td className="py-3 font-sans">Entity / device tokens</td>
-                <td className="py-3 text-gray-400 dark:text-zinc-600">Awaiting transaction</td>
-              </tr>
-              <tr className="border-b border-gray-200 dark:border-[#27272a]/30">
-                <td className="py-3 font-sans">Temporal features</td>
-                <td className="py-3 text-gray-400 dark:text-zinc-600">Pipeline not configured</td>
-              </tr>
-              <tr className="border-b border-gray-200 dark:border-[#27272a]/30">
-                <td className="py-3 font-sans">Behavioral features</td>
-                <td className="py-3 text-gray-400 dark:text-zinc-600">Pipeline not configured</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <div className="mt-8 space-y-2">
-            <p className="text-[10px] font-mono text-gray-500 dark:text-zinc-500 uppercase tracking-widest">Trace Links / Pending</p>
-            <p className="text-[10px] font-mono text-gray-400 dark:text-zinc-600">Dataset row → ModelRun → PolicyDecision</p>
-            <p className="text-[10px] font-mono text-gray-400 dark:text-zinc-600">ChannelRun → PolicyVersion → Artifact</p>
-          </div>
-
-          <div className="mt-auto pt-6">
-            <div className="bg-white dark:bg-[#0c0c0c] border border-gray-200 dark:border-[#27272a] rounded-lg p-3 flex items-start gap-3">
-              <div className="w-4 h-4 rounded-full border border-gray-300 dark:border-zinc-700 flex items-center justify-center flex-shrink-0">
-                 <span className="text-[8px] text-gray-500 dark:text-zinc-500">i</span>
+        {/* Event Inspector & Linked Accounts Graph (Col Span 4) */}
+        <div className="col-span-4 flex flex-col gap-6">
+          <div className="border border-gray-200 dark:border-[#27272a] bg-white dark:bg-[#0c0c0c] shadow-sm rounded-xl p-6">
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Event Inspector</h3>
+            {selectedTx ? (
+              <div className="space-y-3 text-xs font-mono">
+                <div className="flex justify-between border-b border-zinc-800 pb-2">
+                  <span className="text-gray-400">Transaction ID:</span>
+                  <span className="text-gray-200">{selectedTx.txn_id}</span>
+                </div>
+                <div className="flex justify-between border-b border-zinc-800 pb-2">
+                  <span className="text-gray-400">Typology:</span>
+                  <span className="text-amber-400">{selectedTx.fraud_type}</span>
+                </div>
+                <div className="flex justify-between border-b border-zinc-800 pb-2">
+                  <span className="text-gray-400">Velocity (1h):</span>
+                  <span>{selectedTx.velocity_1h} txns</span>
+                </div>
+                <div className="flex justify-between border-b border-zinc-800 pb-2">
+                  <span className="text-gray-400">Implied Speed:</span>
+                  <span>{selectedTx.geo_speed_kmh} km/h</span>
+                </div>
+                <div className="flex justify-between border-b border-zinc-800 pb-2">
+                  <span className="text-gray-400">Stage Used:</span>
+                  <span className="text-red-600 dark:text-[#86efac]">{selectedTx.stage_used}</span>
+                </div>
               </div>
-              <p className="text-[10px] text-gray-600 dark:text-zinc-400 leading-relaxed">
-                Identifiers are tokenized. Raw account, device and payment credentials never appear in this workspace.
-              </p>
-            </div>
+            ) : (
+              <p className="text-xs text-gray-500">Select a transaction from the table to inspect details.</p>
+            )}
           </div>
 
+          {/* Linked Account Ring Graph Visualizer */}
+          <div className="border border-gray-200 dark:border-[#27272a] bg-white dark:bg-[#0c0c0c] shadow-sm rounded-xl p-6">
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+              <Network className="w-4 h-4 text-red-600 dark:text-[#86efac]" /> Payee Network Ring Graph
+            </h3>
+            <p className="text-[10px] text-gray-500 mb-4">Visualizes payer-payee cluster connections for mule detection.</p>
+            <div className="h-44 bg-gray-950 border border-zinc-800 rounded-lg p-4 relative flex items-center justify-center">
+              {networkGraph?.nodes ? (
+                <div className="w-full h-full relative flex items-center justify-center">
+                  <div className="w-16 h-16 rounded-full border-2 border-red-500 bg-red-950/50 flex items-center justify-center text-[10px] font-mono text-red-300 font-bold">
+                    Collector
+                  </div>
+                  {networkGraph.nodes.slice(0, 6).map((node: any, i: number) => {
+                    const angle = (i * 360) / 6;
+                    const rad = (angle * Math.PI) / 180;
+                    const x = Math.cos(rad) * 60;
+                    const y = Math.sin(rad) * 60;
+                    return (
+                      <div
+                        key={node.id}
+                        className="absolute w-8 h-8 rounded-full bg-blue-900/80 border border-blue-400 flex items-center justify-center text-[8px] font-mono text-blue-200"
+                        style={{ transform: `translate(${x}px, ${y}px)` }}
+                      >
+                        P{i}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <span className="text-xs text-gray-500 font-mono">No network graph loaded</span>
+              )}
+            </div>
+          </div>
         </div>
-
-      </div>
-
-      <div className="mt-4 border border-gray-200 dark:border-[#27272a] bg-white dark:bg-[#0c0c0c] shadow-sm rounded-lg p-4 flex items-center gap-3">
-        <div className="w-4 h-4 rounded-full border border-gray-300 dark:border-zinc-700 flex items-center justify-center flex-shrink-0">
-          <span className="text-[8px] text-gray-500 dark:text-zinc-500">i</span>
-        </div>
-        <p className="text-xs text-gray-600 dark:text-zinc-400">Replay is an offline analysis workflow, not a live payment switch. Event time, inference latency and decision latency are recorded separately when execution is connected.</p>
-      </div>
-
-      <div className="flex justify-between items-center text-[9px] font-mono text-gray-400 dark:text-zinc-600 uppercase tracking-widest pt-4 pb-8">
-        <div>RESEARCH PROTOTYPE · NO RECORDED RESULTS</div>
-        <div>Dataset → Experiment → Artifacts → Policy decision</div>
       </div>
     </div>
   );

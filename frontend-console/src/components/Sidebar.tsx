@@ -1,4 +1,3 @@
-import React from 'react';
 import { 
   ListOrdered, 
   BarChart2, 
@@ -20,7 +19,13 @@ const navItems = [
   { id: 'schema', label: 'Data Schema', icon: Database },
 ];
 
-export function Sidebar({ activePage, setActivePage, isConnected }) {
+interface SidebarProps {
+  activePage: string;
+  setActivePage: (page: string) => void;
+  isConnected: boolean;
+}
+
+export function Sidebar({ activePage, setActivePage, isConnected }: SidebarProps) {
   return (
     <div className="w-[280px] min-w-[280px] h-screen bg-white dark:bg-[#0c0c0c] border-r border-gray-200 dark:border-[#27272a] flex flex-col font-sans text-sm">
       {/* Logo */}

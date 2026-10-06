@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
 import { ModelBenchmarks } from './pages/ModelBenchmarks';
@@ -7,7 +7,7 @@ import { ExperimentsProvenance } from './pages/ExperimentsProvenance';
 import { DataSchema } from './pages/DataSchema';
 import { CircuitMeasurements } from './pages/CircuitMeasurements';
 import { QkdChannelLab } from './pages/QkdChannelLab';
-import { ComingSoon } from './pages/ComingSoon';
+import { AdaptiveSecurityPolicy } from './pages/AdaptiveSecurityPolicy';
 
 export default function App() {
   const [activePage, setActivePage] = useState('benchmarks');
@@ -38,7 +38,7 @@ export default function App() {
       case 'replay': return <TransactionReplay />;
       case 'circuit': return <CircuitMeasurements />;
       case 'qkd': return <QkdChannelLab />;
-      case 'policy': return <ComingSoon title="Adaptive Security Policy" />;
+      case 'policy': return <AdaptiveSecurityPolicy />;
       case 'experiments': return <ExperimentsProvenance />;
       case 'schema': return <DataSchema />;
       default: return <ModelBenchmarks />;
@@ -46,7 +46,7 @@ export default function App() {
   };
 
   const getPageTitle = () => {
-    const titles = {
+    const titles: Record<string, string> = {
       'benchmarks': 'Model Benchmarks',
       'replay': 'Transaction Replay',
       'circuit': 'Circuit & Measurements',
@@ -55,7 +55,7 @@ export default function App() {
       'experiments': 'Experiments & Provenance',
       'schema': 'Data Schema'
     };
-    return titles[activePage];
+    return titles[activePage] || 'Dashboard';
   };
 
   return (

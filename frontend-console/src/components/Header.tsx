@@ -1,7 +1,13 @@
-import React from 'react';
 import { Settings2, Moon, Sun } from 'lucide-react';
 
-export function Header({ pageTitle, isDarkMode, setIsDarkMode, isConnected }) {
+interface HeaderProps {
+  pageTitle: string;
+  isDarkMode: boolean;
+  setIsDarkMode: (val: boolean) => void;
+  isConnected: boolean;
+}
+
+export function Header({ pageTitle, isDarkMode, setIsDarkMode, isConnected }: HeaderProps) {
   return (
     <header className="h-16 flex items-center justify-between px-8 border-b border-gray-200 dark:border-[#27272a]">
       <div className="flex items-center gap-2 text-xs">
