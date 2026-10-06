@@ -1,0 +1,62 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.kiro/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Demo video files (not for repo)
+demo_visuals.html
+DEMO_VISUALS_README.md
+VISUALS_CHANGELOG.md
+index.html
+*_demo_*.png
+*_Demo_*.png
+
+# Project internal files (not for repo)
+# PROJECT_SUMMARY.md
+# PROOF_OF_COMPLETION.md
+
+# Model files (optional - uncomment if you don't want to commit trained models)
+# model_v1.pkl
+# test_model.pkl
+
+# Logs
+*.log
