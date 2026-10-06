@@ -25,8 +25,10 @@ from q_upi_sentinel.classical_models import ClassicalBaselines
 from q_upi_sentinel.quantum_models import BloqQuantumKernelModel, compute_quantum_kernel_matrix
 from q_upi_sentinel.tiered_pipeline import TieredPipelineScorer
 from q_upi_sentinel.experiments import run_experiment_e1_main_benchmark
+from q_upi_sentinel.qgcn_laundering import QuantumGraphLaunderingDetector
 
 app = Flask(__name__)
+
 
 # Global Cached State
 DATASET = None
@@ -174,9 +176,11 @@ HTML_FRONTEND = """
             <button class="nav-btn active" onclick="switchTab('tab-comparison')">⚔️ Classical vs Quantum</button>
             <button class="nav-btn" onclick="switchTab('tab-circuit')">⚛️ Quantum Circuit & Hilbert Space</button>
             <button class="nav-btn" onclick="switchTab('tab-qkd')">📡 Decoy-State BB84 QKD</button>
+            <button class="nav-btn" onclick="switchTab('tab-qgcn')">🌐 QGCN Laundering Rings</button>
             <button class="nav-btn" onclick="switchTab('tab-benchmarks')">📊 5-Seed Benchmarks</button>
         </div>
     </div>
+
 
     <!-- TAB 1: SIDE-BY-SIDE CLASSICAL VS QUANTUM COMPARISON -->
     <div id="tab-comparison" class="tab-content active">
@@ -343,8 +347,31 @@ HTML_FRONTEND = """
         </div>
     </div>
 
+    <!-- TAB 5: QUANTUM GRAPH CONVOLUTIONAL NETWORK (QGCN) -->
+    <div id="tab-qgcn" class="tab-content">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">🌐 Spatial Quantum Graph Convolutional Network (QGCN)</div>
+                <span style="font-size: 11px; color: var(--accent);">PennyLane / Qiskit Topological CRZ Graph Entanglement</span>
+            </div>
+
+            <p style="color: var(--text-dim); font-size: 13px; margin-bottom: 15px;">
+                Detects structured money laundering loops and mule account networks across multi-party ledger sub-graphs \(G = (V, E)\) using quantum state expectation values \(\langle Z_i \rangle\).
+            </p>
+
+            <button class="btn-act btn-escalate" onclick="loadQGCN()" style="max-width: 320px; margin-bottom: 20px;">
+                🕸️ Run QGCN Sub-Graph Topology Scan
+            </button>
+
+            <div id="qgcnResults">
+                <div class="terminal-box">Click button above to execute Spatial QGCN Graph Circuit...</div>
+            </div>
+        </div>
+    </div>
+
     <!-- TAB 4: BENCHMARKS -->
     <div id="tab-benchmarks" class="tab-content">
+
         <div class="card">
             <div class="card-header">
                 <div class="card-title">📊 5-Seed Benchmark Results (PR-AUC with 95% CIs)</div>
@@ -465,8 +492,39 @@ HTML_FRONTEND = """
             document.getElementById('benchTable').innerHTML = html;
         }
 
+        async function loadQGCN() {
+            document.getElementById('qgcnResults').innerHTML = '<div class="terminal-box">Simulating Spatial QGCN Graph Convolution...</div>';
+            const res = await fetch('/api/qgcn');
+            const data = await res.json();
+
+            let html = `<div style="background:#050810; border:1px solid #1a2336; border-radius:12px; padding:16px; margin-bottom:15px;">
+                <div style="font-weight:bold; color:var(--accent); font-size:14px; margin-bottom:8px;">
+                    🕸️ QGCN Sub-Graph Global Laundering Risk Index: <span style="color:#ef4444;">${data.global_laundering_score}</span>
+                </div>
+                <div style="font-size:12px; color:var(--text-dim);">
+                    Topology: ${data.topology} | Nodes: ${data.num_nodes} | Structuring Loop Detected: <strong>${data.circular_structuring_loop_detected ? 'YES 🚨' : 'NO 🟢'}</strong>
+                </div>
+            </div>
+            <table>
+                <thead>
+                    <tr><th>Account ID</th><th>Pauli-Z Expectation \(\\langle Z_i \\rangle\)</th><th>Quantum Risk Index</th><th>Network Status</th></tr>
+                </thead>
+                <tbody>`;
+            data.node_analysis.forEach(n => {
+                html += `<tr>
+                    <td><strong>${n.account_id}</strong></td>
+                    <td><code>${n.pauli_z_expectation}</code></td>
+                    <td><strong style="color:${n.is_mule ? '#ef4444' : '#10b981'};">${n.quantum_risk_index}</strong></td>
+                    <td>${n.status}</td>
+                </tr>`;
+            });
+            html += `</tbody></table>`;
+            document.getElementById('qgcnResults').innerHTML = html;
+        }
+
         window.onload = compareModels;
     </script>
+
 </body>
 </html>
 """
@@ -591,7 +649,15 @@ def api_export_report():
 
 
 
+@app.route('/api/qgcn')
+def api_qgcn():
+    """Executes spatial QGCN multi-party ledger graph laundering loop analysis."""
+    detector = QuantumGraphLaunderingDetector(num_nodes=4)
+    res = detector.analyze_ledger_subgraph()
+    return jsonify(res)
+
 if __name__ == '__main__':
     print("Launching Q-UPI Sentinel Master Server on http://0.0.0.0:8002...")
     app.run(host='0.0.0.0', port=8002, debug=False)
+
 
