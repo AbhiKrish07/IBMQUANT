@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  q-upi-sentinel:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: q_upi_sentinel_app
+    ports:
+      - "8002:8002"
+    environment:
+      - PORT=8002
+      - PYTHONUNBUFFERED=1
+    restart: always
