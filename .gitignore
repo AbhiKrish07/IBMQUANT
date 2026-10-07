@@ -58,5 +58,9 @@ index.html
 # model_v1.pkl
 # test_model.pkl
 
+# Datasets
+data/
+*.csv
+
 # Logs
 *.log

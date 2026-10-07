@@ -293,5 +293,63 @@ def main():
         print(f"  {label} -> {v:7s} at Stage {s} | score {sc_:+.3f} | {ms:.2f} ms")
 
 
+class TieredPipelineScorer:
+    def __init__(self, classical_model, quantum_engine, t_low=0.20, t_high=0.80, t_quantum=0.50):
+        self.classical_model = classical_model
+        self.quantum_engine = quantum_engine
+        self.t_low = t_low
+        self.t_high = t_high
+        self.t_quantum = t_quantum
+
+    def score_transaction(self, class_feats_scaled, quant_feats_scaled):
+        s1_prob = float(self.classical_model.predict_proba(class_feats_scaled)[0, 1])
+        if s1_prob < self.t_low:
+            return {
+                "decision": "PASS_AUTO_APPROVE",
+                "stage_used": "Stage 1 Fast-Path Clear",
+                "s1_score": round(s1_prob, 4),
+                "s2_score": None,
+                "review_required": False
+            }
+        elif s1_prob > self.t_high:
+            return {
+                "decision": "BLOCK_AND_CHALLENGE",
+                "stage_used": "Stage 1 Fast-Path Block",
+                "s1_score": round(s1_prob, 4),
+                "s2_score": None,
+                "review_required": True
+            }
+        else:
+            s2_prob = float(self.quantum_engine.predict_proba(quant_feats_scaled)[0])
+            decision = "BLOCK_AND_CHALLENGE" if s2_prob >= self.t_quantum else "PASS_AUTO_APPROVE"
+            return {
+                "decision": decision,
+                "stage_used": "Stage 2 Quantum Hilbert Review",
+                "s1_score": round(s1_prob, 4),
+                "s2_score": round(s2_prob, 4),
+                "review_required": s2_prob >= self.t_quantum
+            }
+
+    def batch_evaluate(self, X, X_q, y):
+        s1_probs = self.classical_model.predict_proba(X)[:, 1]
+        stage1_cleared = s1_probs < self.t_low
+        stage1_blocked = s1_probs > self.t_high
+        gray_zone_mask = (s1_probs >= self.t_low) & (s1_probs <= self.t_high)
+        
+        s2_probs = np.zeros(len(X))
+        if np.any(gray_zone_mask):
+            s2_probs[gray_zone_mask] = self.quantum_engine.predict_proba(X_q[gray_zone_mask])
+            
+        final_decisions = np.where(stage1_blocked, 1, np.where(stage1_cleared, 0, (s2_probs >= self.t_quantum).astype(int)))
+        
+        return {
+            "stage1_clear_count": int(np.sum(stage1_cleared)),
+            "stage1_block_count": int(np.sum(stage1_blocked)),
+            "gray_zone_count": int(np.sum(gray_zone_mask)),
+            "final_decisions": final_decisions.tolist(),
+            "s1_scores": s1_probs.tolist(),
+            "s2_scores": s2_probs.tolist()
+        }
+
 if __name__ == "__main__":
     main()

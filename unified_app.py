@@ -229,51 +229,61 @@ def compliance_report_context():
 app.register_blueprint(create_compliance_blueprint(compliance_report_context))
 
 
+_INIT_LOCK = threading.Lock()
+
 def initialize_sentinel():
     global DATASET, FEATURE_DF, CLASSICAL_MODELS, QUANTUM_MODEL, TIERED_SCORER, SELECTED_QCOLS, QUANTUM_SCALER, INITIALIZATION_ERROR
-    log_terminal("SYSTEM", f"Initializing Q-UPI Sentinel — dataset mode: {DATASET_MODE}")
-    dataset_loaders = {
-        "synthetic": lambda: generate_seeded_synthetic_upi_data(**DATASET_SETTINGS),
-        "csv_benchmark": lambda: generate_synthetic_upi_data(**DATASET_SETTINGS),
-        "ibm_aml": lambda: load_ibm_aml_dataset(**DATASET_SETTINGS),
-        "berkan_aml": lambda: load_berkan_aml_dataset(**DATASET_SETTINGS),
-        "ieee_cis": lambda: load_ieee_cis_dataset(**DATASET_SETTINGS),
-        "paysim": lambda: load_paysim_dataset(**DATASET_SETTINGS),
-        "bank_fraud": lambda: load_bank_fraud_dataset(**DATASET_SETTINGS),
-    }
-    loader = dataset_loaders.get(DATASET_MODE, dataset_loaders["synthetic"])
-    if DATASET_MODE != "synthetic":
-        log_terminal("SYSTEM", f"Loading {DATASET_MODE} dataset...")
-    DATASET = loader()
-    log_terminal("DATASET", f"Loaded {len(DATASET)} rows, fraud={int(DATASET['label'].sum())} ({DATASET_MODE})")
-    FEATURE_DF = extract_features(DATASET)
+    with _INIT_LOCK:
+        try:
+            log_terminal("SYSTEM", f"Initializing Q-UPI Sentinel — dataset mode: {DATASET_MODE}")
+            dataset_loaders = {
+                "synthetic": lambda: generate_seeded_synthetic_upi_data(**DATASET_SETTINGS),
+                "csv_benchmark": lambda: generate_synthetic_upi_data(**DATASET_SETTINGS),
+                "ibm_aml": lambda: load_ibm_aml_dataset(**DATASET_SETTINGS),
+                "berkan_aml": lambda: load_berkan_aml_dataset(**DATASET_SETTINGS),
+                "ieee_cis": lambda: load_ieee_cis_dataset(**DATASET_SETTINGS),
+                "paysim": lambda: load_paysim_dataset(**DATASET_SETTINGS),
+                "bank_fraud": lambda: load_bank_fraud_dataset(**DATASET_SETTINGS),
+            }
+            loader = dataset_loaders.get(DATASET_MODE, dataset_loaders["synthetic"])
+            if DATASET_MODE != "synthetic":
+                log_terminal("SYSTEM", f"Loading {DATASET_MODE} dataset...")
+            DATASET = loader()
+            log_terminal("DATASET", f"Loaded {len(DATASET)} rows, fraud={int(DATASET['label'].sum())} ({DATASET_MODE})")
+            FEATURE_DF = extract_features(DATASET)
 
-    X = FEATURE_DF[FEATURE_COLS]
-    y = FEATURE_DF["label"]
+            X = FEATURE_DF[FEATURE_COLS]
+            y = FEATURE_DF["label"]
 
-    CLASSICAL_MODELS = ClassicalBaselines(seed=42)
-    CLASSICAL_MODELS.fit_all(X, y)
+            cb_models = ClassicalBaselines(seed=42)
+            cb_models.fit_all(X, y)
+            CLASSICAL_MODELS = cb_models
 
-    qcfg = QUANTUM_CONFIG
-    QUANTUM_MODEL = QUpiSentinelEngine(n_qubits=qcfg["n_qubits"], reps=qcfg["reps"], entanglement=qcfg["entanglement"])
-    
-    pos_idx = np.where(y.values == 1)[0]
-    neg_idx = np.where(y.values == 0)[0]
-    sub_pos = np.random.choice(pos_idx, size=min(len(pos_idx), 30), replace=False)
-    sub_neg = np.random.choice(neg_idx, size=90, replace=False)
-    sub_idx = np.concatenate([sub_pos, sub_neg])
-    np.random.shuffle(sub_idx)
+            qcfg = QUANTUM_CONFIG
+            QUANTUM_MODEL = QUpiSentinelEngine(n_qubits=qcfg["n_qubits"], reps=qcfg["reps"], entanglement=qcfg["entanglement"])
+            
+            pos_idx = np.where(y.values == 1)[0]
+            neg_idx = np.where(y.values == 0)[0]
+            sub_pos = np.random.choice(pos_idx, size=min(len(pos_idx), 30), replace=False)
+            sub_neg = np.random.choice(neg_idx, size=90, replace=False)
+            sub_idx = np.concatenate([sub_pos, sub_neg])
+            np.random.shuffle(sub_idx)
 
-    QUANTUM_MODEL.train_pipeline(X.iloc[sub_idx], y.iloc[sub_idx].values)
-    
-    # Generate X_q from the trained model's pipeline for batch evaluation
-    X_q_scaled = QUANTUM_MODEL.scaler.transform(X)
-    X_q = QUANTUM_MODEL.pca.transform(X_q_scaled)
+            QUANTUM_MODEL.train_pipeline(X.iloc[sub_idx], y.iloc[sub_idx].values)
+            
+            # Generate X_q from the trained model's pipeline for batch evaluation
+            X_q_scaled = QUANTUM_MODEL.scaler.transform(X)
+            X_q = QUANTUM_MODEL.pca.transform(X_q_scaled)
 
-    gb_model = CLASSICAL_MODELS.trained_models["GradientBoosting"]
-    TIERED_SCORER = TieredPipelineScorer(gb_model, QUANTUM_MODEL, t_low=0.20, t_high=0.80, t_quantum=0.50)
-    INITIALIZATION_READY.set()
-    print("Q-UPI Sentinel Engine Ready! Qiskit statevector kernel active.")
+            gb_model = CLASSICAL_MODELS.trained_models.get("GradientBoosting") or QUANTUM_MODEL.classical_fast_model
+            TIERED_SCORER = TieredPipelineScorer(gb_model, QUANTUM_MODEL, t_low=0.20, t_high=0.80, t_quantum=0.50)
+            INITIALIZATION_ERROR = None
+            INITIALIZATION_READY.set()
+            print("Q-UPI Sentinel Engine Ready! Qiskit statevector kernel active.")
+        except Exception as exc:
+            INITIALIZATION_ERROR = str(exc)
+            print(f"Q-UPI Sentinel initialization failed: {INITIALIZATION_ERROR}")
+            raise exc
 
 
 def start_sentinel_initialization(force=False):
@@ -283,15 +293,12 @@ def start_sentinel_initialization(force=False):
         return
 
     INITIALIZATION_READY.clear()
-    INITIALIZATION_ERROR = None
 
     def initialize():
-        global INITIALIZATION_ERROR
         try:
             initialize_sentinel()
-        except Exception as exc:
-            INITIALIZATION_ERROR = str(exc)
-            print(f"Q-UPI Sentinel initialization failed: {INITIALIZATION_ERROR}")
+        except Exception:
+            pass
 
     threading.Thread(target=initialize, name="q-upi-initializer", daemon=True).start()
 
@@ -839,8 +846,8 @@ def _score_payload(data):
         "ground_truth": ground_truth,
         "classical_decision": "FLAG_FRAUD" if gb_prob > 0.5 else "APPROVE",
         "quantum_decision": "FLAG_FRAUD" if quantum_prob > 0.5 else "APPROVE",
-        "decision": tiered_result["decision"], "stage_used": f"Stage {tiered_result['stage_reached']}",
-        "routing_reason": tiered_result["routing_reason"], "explanation": explanation,
+        "decision": tiered_result["decision"], "stage_used": tiered_result.get("stage_used", f"Stage {tiered_result.get('stage_reached', 1)}"),
+        "routing_reason": tiered_result.get("routing_reason", tiered_result.get("stage_used", "Tiered routing evaluation complete")), "explanation": explanation,
         "processing_time_ms": round((time.perf_counter() - started) * 1000, 3),
         "qiskit_execution": proof,
         "groq_powered": GROQ_AVAILABLE,
