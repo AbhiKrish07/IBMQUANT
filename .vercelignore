@@ -12,3 +12,5 @@ engine/
 tests/
 marketing/
 .vscode/
+data/
+*.csv
