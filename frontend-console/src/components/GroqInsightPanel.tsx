@@ -58,12 +58,12 @@ export function GroqInsightPanel({
       {/* Header */}
       <div className="flex items-center justify-between border-b-2 border-gray-200 dark:border-zinc-800 pb-3">
         <div className="flex items-center gap-3">
-          <div className="p-1 border-2 border-gray-900 dark:border-zinc-800 bg-gray-900 dark:bg-white text-white dark:text-black rounded">
+          <div className="p-1 border-2 border-gray-900 dark:border-zinc-800 bg-[#d4ff55] text-black rounded">
             <Zap className="w-5 h-5" />
           </div>
           <div>
             <h3 className="text-xl font-['VT323'] text-gray-900 dark:text-white tracking-widest uppercase">SENTINEL AI INTELLIGENCE</h3>
-            <p className="text-[10px] text-red-600 font-mono uppercase tracking-widest font-bold">QUANTUM NEURAL EXPLAINER</p>
+            <p className="text-[10px] text-[#d4ff55] font-mono uppercase tracking-widest font-bold">QUANTUM NEURAL EXPLAINER</p>
           </div>
         </div>
         {quantumRiskScore !== undefined && (
@@ -81,7 +81,7 @@ export function GroqInsightPanel({
               key={k}
               className="px-2 py-0.5 border border-gray-300 dark:border-zinc-700 bg-gray-100 dark:bg-zinc-900 text-[10px] font-mono text-gray-700 dark:text-zinc-300 uppercase rounded"
             >
-              {k}: <span className="font-bold text-red-600">{typeof v === 'number' ? v.toFixed(4) : v}</span>
+              {k}: <span className="font-bold text-[#d4ff55]">{typeof v === 'number' ? v.toFixed(4) : v}</span>
             </span>
           ))}
         </div>
@@ -90,12 +90,12 @@ export function GroqInsightPanel({
       {/* Explanation box */}
       <div className="min-h-[80px] bg-gray-50 dark:bg-zinc-950 border-2 border-gray-200 dark:border-zinc-800 p-4 font-mono text-xs leading-relaxed text-gray-800 dark:text-zinc-300 rounded">
         {loading ? (
-          <div className="flex items-center gap-2 text-red-600 animate-pulse">
+          <div className="flex items-center gap-2 text-[#d4ff55] animate-pulse">
             <Loader2 className="w-3.5 h-3.5 animate-spin" />
             <span className="uppercase tracking-widest">GENERATING NARRATIVE...</span>
           </div>
         ) : error ? (
-          <span className="text-red-600">{error}</span>
+          <span className="text-rose-500 font-bold">{error}</span>
         ) : explanation ? (
           <span className="whitespace-pre-wrap">{explanation}</span>
         ) : (
@@ -109,7 +109,7 @@ export function GroqInsightPanel({
       <button
         onClick={fetchExplanation}
         disabled={loading}
-        className="w-full flex items-center justify-center gap-2 py-3 px-4 border-2 border-gray-900 dark:border-white bg-gray-900 dark:bg-white text-white dark:text-black hover:bg-red-600 hover:border-red-600 dark:hover:bg-red-600 dark:hover:border-red-600 dark:hover:text-white hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-['VT323'] text-xl uppercase tracking-widest rounded"
+        className="w-full flex items-center justify-center gap-2 py-3 px-4 border-2 border-[#d4ff55] bg-[#d4ff55] text-black hover:bg-[#c8ed57] hover:border-[#c8ed57] disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-['VT323'] text-xl uppercase tracking-widest rounded font-bold shadow-[0_0_15px_rgba(212,255,85,0.2)]"
       >
         {loading ? (
           <><Loader2 className="w-5 h-5 animate-spin" /> GENERATING...</>
