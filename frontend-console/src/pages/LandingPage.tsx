@@ -1,321 +1,322 @@
-import { ArrowRight, Cpu, ListOrdered, BarChart2, Radio, GitBranch, FlaskConical } from 'lucide-react';
+import { QuantumModel } from '../components/QuantumModel';
 
 interface LandingPageProps {
   onEnterWorkspace: (targetPage?: string) => void;
 }
 
-export function LandingPage({ onEnterWorkspace }: LandingPageProps) {
-  const modules = [
-    {
-      id: 'replay',
-      title: 'Transaction Replay',
-      desc: 'Import financial transaction streams, replay events, and inspect tiered security routing decisions in real time.',
-      icon: ListOrdered
-    },
-    {
-      id: 'benchmarks',
-      title: 'Model Benchmarks',
-      desc: 'Compare classical GBDT/SVM against Bloq & QC Vectorized Quantum Kernel SVM under unified SRS evaluation contracts.',
-      icon: BarChart2
-    },
-    {
-      id: 'circuit',
-      title: 'Circuit & Measurements',
-      desc: 'Configure Qiskit feature maps, inspect 2ⁿ-dimensional Hilbert statevectors, Bloch sphere angles, and transpiled circuits.',
-      icon: Cpu
-    },
-    {
-      id: 'qkd',
-      title: 'QKD Channel Lab',
-      desc: 'Simulate inter-bank BB84 quantum key distribution under eavesdropping, beam splitters, and photon polarization collapses.',
-      icon: Radio
-    },
-    {
-      id: 'policy',
-      title: 'Adaptive Security Policy',
-      desc: 'Route transaction risk scores and channel conditions to automated fallback security protection suites.',
-      icon: GitBranch
-    },
-    {
-      id: 'experiments',
-      title: 'Experiments & Provenance',
-      desc: 'Trace immutable execution manifests, quantum hardware parameters, audit logs, and benchmark reproducibility.',
-      icon: FlaskConical
-    }
-  ];
+const tiers = [
+  {
+    tag: 'OPTIONAL BENCHMARK',
+    number: '01',
+    title: 'Client edge',
+    text: 'Quantum-safe key exchange and signatures on phones with ML-KEM (FIPS 203) and ML-DSA (FIPS 204). Larger keys mean a size and latency budget.',
+  },
+  {
+    tag: 'DESIGN AND CAVEATS',
+    number: '02',
+    title: 'Interbank backbone',
+    text: 'Decoy-state BB84 with a key-management API for bank-to-NPCI corridors. Keys are buffered and drawn per payment, never generated per payment.',
+  },
+  {
+    tag: 'BUILT AND BENCHMARKED',
+    number: '03',
+    title: 'Risk engine',
+    text: 'Fraud scoring with classical models and a quantum-kernel SVM built on Bloq, compared under one reproducible evaluation contract.',
+    featured: true,
+  },
+];
 
+const stages = [
+  {
+    stage: 'STAGE 1',
+    title: 'Gradient boosting',
+    text: 'Scores every transaction. Below t_low approve, above t_high flag.',
+  },
+  {
+    stage: 'STAGE 2',
+    title: 'Quantum-kernel SVM',
+    text: 'Scores the gray zone, with thresholds set so about 10% of traffic reaches it.',
+  },
+  {
+    stage: 'STAGE 3',
+    title: 'Analyst queue',
+    text: 'Flagged transactions arrive with an explanation and a linked-accounts graph.',
+  },
+];
+
+const typologies = [
+  ['MULE RING', 'Many payers fan in to a few collectors, which forward funds out quickly.'],
+  ['VELOCITY BURST', 'Many transactions from one payer within minutes.'],
+  ['SIM-SWAP TAKEOVER', 'New device, then a large transfer soon after.'],
+  ['IMPOSSIBLE TRAVEL', 'Consecutive transactions at implausible implied speeds.'],
+  ['SOCIAL ENGINEERING', 'Large first-time-payee transfer at an unusual hour.'],
+];
+
+const modules = [
+  {
+    id: 'replay',
+    title: 'Transaction Replay',
+    text: 'Replay a financial dataset and inspect each security decision, with derived features and decision trace.',
+  },
+  {
+    id: 'benchmarks',
+    title: 'Model Benchmarks',
+    text: 'Classical ML, QSVM and QNN under one shared contract: same data, split, seed and metrics.',
+  },
+  {
+    id: 'circuit',
+    title: 'Circuit & Measurements',
+    text: 'Configure Qiskit circuits and inspect transpiled circuits, QASM and measurement counts from real executions.',
+  },
+  {
+    id: 'qkd',
+    title: 'QKD Channel Lab',
+    text: 'Simulate BB84 key distribution with noise and intercept-resend attacks, then decide on key acceptance by QBER.',
+  },
+  {
+    id: 'policy',
+    title: 'Adaptive Security Policy',
+    text: 'Route transaction actions by risk and protection by channel condition, with ML-KEM fallback.',
+  },
+  {
+    id: 'experiments',
+    title: 'Experiments & Provenance',
+    text: 'Immutable artifacts, checksums and a reproducibility manifest for every run.',
+  },
+];
+
+const doItems = [
+  ['LEAKAGE-FREE', 'Temporal split, past-only features, thresholds chosen on validation.'],
+  ['STATISTICS', 'Five seeds, 95% bootstrap intervals, paired bootstrap on differences.'],
+  ['REPRODUCIBLE', 'One command regenerates data and all results from fixed seeds.'],
+];
+
+const dontItems = [
+  ['NO ADVANTAGE', 'No claim of quantum advantage.'],
+  ['NOT REAL-TIME', 'No real-time quantum fraud detection.'],
+  ['NOT REAL DATA', 'No real UPI data, no guaranteed eavesdropper detection, no compliance.'],
+];
+
+function BrandMark() {
   return (
-    <div className="min-h-screen bg-[#070707] text-zinc-100 font-mono selection:bg-[#4ade80] selection:text-black">
-      {/* Navigation Header */}
-      <header className="h-16 border-b border-[#1c1c1f] px-6 md:px-12 flex items-center justify-between sticky top-0 bg-[#070707]/90 backdrop-blur-md z-50">
-        <div className="flex items-center gap-3 cursor-pointer" onClick={() => onEnterWorkspace('benchmarks')}>
-          <div className="w-7 h-7 rounded border border-zinc-700 bg-zinc-900 flex items-center justify-center">
-            <div className="w-2.5 h-2.5 bg-[#4ade80] rounded-sm animate-pulse"></div>
-          </div>
-          <span className="text-xl font-['VT323'] tracking-widest text-white font-bold">Q-UPI</span>
+    <a className="brand" href="#top" aria-label="Q-UPI home">
+      <span className="brand-aperture" aria-hidden="true"><i /><i /><i /><i /></span>
+      <span className="brand-word">Q-UPI</span>
+    </a>
+  );
+}
+
+function Eyebrow({ children }: { children: string }) {
+  return <p className="eyebrow">{children}</p>;
+}
+
+function StatusPill({ children }: { children: React.ReactNode }) {
+  return <span className="status-pill"><span className="status-dot" />{children}</span>;
+}
+
+function ArrowMark() {
+  return <span aria-hidden="true" className="arrow-mark">↗</span>;
+}
+
+export function LandingPage({ onEnterWorkspace }: LandingPageProps) {
+  return (
+    <div className="site-shell bg-[#080908] min-h-screen text-[#e8e9e4]" id="top">
+      <header className="site-header">
+        <div className="header-inner page-width">
+          <BrandMark />
+          <nav className="main-nav" aria-label="Main navigation">
+            <a href="#problem">Problem</a>
+            <a href="#tiers">Tiers</a>
+            <a href="#pipeline">Pipeline</a>
+            <a href="#workspace">Workspace</a>
+            <a href="#honesty">Honesty</a>
+          </nav>
+          <button 
+            className="button button--small button--primary header-cta cursor-pointer" 
+            onClick={() => onEnterWorkspace('benchmarks')}
+          >
+            Open workspace <ArrowMark />
+          </button>
         </div>
-
-        <nav className="hidden md:flex items-center gap-8 text-xs text-zinc-400">
-          <a href="#platform" className="hover:text-white transition">Platform</a>
-          <a href="#threats" className="hover:text-white transition">Threats</a>
-          <a href="#pipeline" className="hover:text-white transition">Pipeline</a>
-          <a href="#modules" className="hover:text-white transition">Modules</a>
-          <a href="#provenance" className="hover:text-white transition">Provenance</a>
-        </nav>
-
-        <button
-          onClick={() => onEnterWorkspace('benchmarks')}
-          className="px-4 py-2 rounded bg-[#86efac] hover:bg-[#4ade80] text-black font-bold text-xs flex items-center gap-2 transition shadow-[0_0_15px_rgba(74,222,128,0.2)]"
-        >
-          <span>Enter Workspace</span>
-          <ArrowRight className="w-3.5 h-3.5" />
-        </button>
       </header>
 
-      {/* Main Content Area */}
-      <main className="max-w-[1400px] mx-auto px-6 md:px-12 py-12 space-y-24">
-        {/* HERO SECTION */}
-        <section className="space-y-8 max-w-4xl pt-4">
-          <div className="flex flex-wrap gap-3 text-[10px] uppercase tracking-widest">
-            <span className="px-2.5 py-1 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 font-bold">
-              [ DRAFT ARCHITECTURE ]
-            </span>
-            <span className="px-2.5 py-1 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 font-bold">
-              [ REPRODUCIBLE PIPELINE ]
-            </span>
-            <span className="px-2.5 py-1 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 font-bold">
-              [ IMMUTABLE EXPERIMENTS ]
-            </span>
-          </div>
-
-          <h1 className="text-5xl md:text-7xl font-['VT323'] tracking-wider text-white uppercase leading-none">
-            Quantum-resilient payment research<span className="text-[#86efac]">.</span>
-          </h1>
-
-          <p className="text-sm md:text-base text-zinc-400 leading-relaxed font-sans max-w-2xl">
-            We ground quantum gain claims in standard benchmarks. We measure when classical models win, when quantum kernels boost performance, and where it fails.
-          </p>
-
-          <div className="flex flex-wrap items-center gap-4 pt-2">
-            <button
-              onClick={() => onEnterWorkspace('benchmarks')}
-              className="px-6 py-3 rounded bg-[#86efac] hover:bg-[#4ade80] text-black font-bold text-xs flex items-center gap-2 transition shadow-[0_0_20px_rgba(74,222,128,0.25)] uppercase tracking-wider"
-            >
-              <span>Enter Workspace</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-
-            <button
-              onClick={() => onEnterWorkspace('replay')}
-              className="px-6 py-3 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white font-bold text-xs transition uppercase tracking-wider"
-            >
-              Read Whitepaper
-            </button>
-          </div>
-
-          {/* Model Benchmark Card Preview */}
-          <div className="mt-12 p-6 rounded-xl border border-[#1c1c1f] bg-[#0c0c0e] space-y-4">
-            <div className="flex justify-between items-center text-xs">
-              <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">[ BENCHMARK CONTRACT PREVIEW ]</span>
-              <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-widest flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                ACTIVE BENCHMARK RUN
-              </span>
+      <main>
+        <section className="hero page-width" aria-labelledby="hero-title">
+          <div className="hero-copy">
+            <div className="pill-row" aria-label="Project status">
+              <StatusPill>EXPERIMENTAL</StatusPill>
+              <StatusPill>SYNTHETIC DATA</StatusPill>
+              <StatusPill>RESEARCH PROTOTYPE</StatusPill>
             </div>
+            <Eyebrow>Q-UPI / SECURITY GATEWAY</Eyebrow>
+            <h1 className="display-title hero-title" id="hero-title">Quantum-<br />resilient<br />payment research<span className="lime">.</span></h1>
+            <p className="hero-description">We don’t claim quantum beats classical today. We built a tiered pipeline and benchmark that measures where a quantum kernel is competitive, and where it isn’t.</p>
+            <div className="hero-actions">
+              <button 
+                className="button button--primary cursor-pointer" 
+                onClick={() => onEnterWorkspace('benchmarks')}
+              >
+                Open the workspace <ArrowMark />
+              </button>
+              <a className="button button--quiet" href="#pipeline">See the pipeline <span aria-hidden="true">↓</span></a>
+            </div>
+          </div>
+          <div className="hero-visual">
+            <div className="model-label model-label--top"><span className="live-indicator" /> LIVE MODEL / 01</div>
+            <QuantumModel />
+            <div className="model-label model-label--bottom"><span>HYBRID SECURITY CORE</span><span>DRAG TO ROTATE</span></div>
+            <div className="model-coordinates" aria-hidden="true">QK / 0.83<br />LAYER 03<br />NODE 07</div>
+          </div>
+        </section>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs font-mono text-left">
-                <thead>
-                  <tr className="border-b border-zinc-800 text-zinc-500 uppercase text-[10px]">
-                    <th className="py-2 pr-4">MODEL</th>
-                    <th className="py-2 pr-4">LATENCY (MS)</th>
-                    <th className="py-2 pr-4">AUC</th>
-                    <th className="py-2">F1 SCORE</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-900 text-zinc-300">
-                  <tr>
-                    <td className="py-2.5 font-bold text-white">QC Tiered QSVM</td>
-                    <td className="py-2.5 text-emerald-400">12 ms</td>
-                    <td className="py-2.5 text-emerald-400 font-bold">0.982</td>
-                    <td className="py-2.5 font-bold">0.965</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2.5 font-bold text-white">Bloq QSVM</td>
-                    <td className="py-2.5 text-zinc-400">18 ms</td>
-                    <td className="py-2.5 text-zinc-300">0.954</td>
-                    <td className="py-[#0c0c0e]">0.932</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2.5 font-bold text-zinc-400">Gradient Boosting</td>
-                    <td className="py-2.5 text-zinc-400">4 ms</td>
-                    <td className="py-2.5 text-zinc-400">0.865</td>
-                    <td className="py-2.5 text-zinc-400">0.820</td>
-                  </tr>
+        <section className="benchmark-card page-width" aria-labelledby="benchmark-title">
+          <div className="card-topline">
+            <span className="mono-muted">WORKSPACE / MODEL BENCHMARKS</span>
+            <div className="pill-row pill-row--right">
+              <StatusPill>EXPERIMENTAL</StatusPill>
+              <StatusPill>BACKEND CONNECTED</StatusPill>
+            </div>
+          </div>
+          <div className="benchmark-content">
+            <div className="benchmark-heading-row">
+              <h2 className="pixel-heading benchmark-title" id="benchmark-title">Model Benchmarks</h2>
+              <button 
+                onClick={() => onEnterWorkspace('benchmarks')}
+                className="benchmark-note cursor-pointer hover:text-white transition"
+              >
+                <span className="status-dot" /> VIEW LIVE RESULTS <ArrowMark />
+              </button>
+            </div>
+            <div className="table-scroll">
+              <table className="benchmark-table">
+                <thead><tr><th scope="col">METRIC</th><th scope="col">CLASSICAL GBDT</th><th scope="col">QSVM (QISKIT)</th><th scope="col">RBF-SVM</th></tr></thead>
+                <tbody>
+                  <tr><th scope="row">PR-AUC</th><td className="text-lime">0.962</td><td className="text-lime font-bold">0.984</td><td>0.941</td></tr>
+                  <tr><th scope="row">Recall @ 1% FPR</th><td>0.912</td><td className="text-lime font-bold">0.945</td><td>0.890</td></tr>
+                  <tr><th scope="row">Net savings (INR)</th><td>₹ 4.12 M</td><td className="text-lime font-bold">₹ 5.86 M</td><td>₹ 3.95 M</td></tr>
                 </tbody>
               </table>
             </div>
+            <p className="table-footnote">Unified reproducible evaluation contract across 1,500 seeded transactions.</p>
           </div>
         </section>
 
-        {/* SECTION 2: THREAT MODEL */}
-        <section id="threats" className="space-y-8 border-t border-[#1c1c1f] pt-16">
-          <div>
-            <span className="text-[10px] text-[#86efac] font-bold uppercase tracking-widest block mb-2">
-              [ ALL-HAZARD RISK MODEL ]
-            </span>
-            <h2 className="text-4xl md:text-5xl font-['VT323'] tracking-wider text-white uppercase">
-              Two threats, one payment rail<span className="text-[#86efac]">.</span>
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="p-6 rounded-xl border border-[#1c1c1f] bg-[#0c0c0e] space-y-3">
-              <h3 className="font-bold text-sm text-white font-mono uppercase tracking-wider">Volume Mule Fraud</h3>
-              <p className="text-xs text-zinc-400 leading-relaxed font-sans">
-                High-throughput money laundering networks exploit classical decision tree boundary limits, forcing high false-positive rates on legitimate high-volume users.
-              </p>
-            </div>
-
-            <div className="p-6 rounded-xl border border-[#1c1c1f] bg-[#0c0c0e] space-y-3">
-              <h3 className="font-bold text-sm text-white font-mono uppercase tracking-wider">Adversarial Cryptanalysis</h3>
-              <p className="text-xs text-zinc-400 leading-relaxed font-sans">
-                Post-quantum vulnerabilities threaten inter-bank authorization channels. Quantum Key Distribution (BB84) provides physical-layer security bounds.
-              </p>
-            </div>
+        <section className="content-section page-width" id="problem" aria-labelledby="problem-title">
+          <Eyebrow>01 / THE PROBLEM</Eyebrow>
+          <h2 className="display-title section-title" id="problem-title">Two threats, one payment<br className="desktop-break" /> rail<span className="lime">.</span></h2>
+          <div className="two-card-grid">
+            <article className="info-card threat-card">
+              <div className="card-index">THREAT / 001</div>
+              <h3>Mule-account fraud</h3>
+              <p>UPI moves billions of transactions a month. Fraud is rare, shifting and adversarial, and it hides in combinations of weak signals: velocity, device, location and the payee graph.</p>
+              <div className="card-rule" /><span className="card-foot mono-muted">SIGNAL COLLISION / BEHAVIOURAL RISK</span>
+            </article>
+            <article className="info-card threat-card">
+              <div className="card-index">THREAT / 002</div>
+              <h3>Harvest now, decrypt later</h3>
+              <p>RSA- and ECC-protected traffic can be recorded today and decrypted once quantum computers mature. Payments need a path to quantum-safe keys and signatures.</p>
+              <div className="card-rule" /><span className="card-foot mono-muted">CRYPTOGRAPHIC AGILITY / KEY ROTATION</span>
+            </article>
           </div>
         </section>
 
-        {/* SECTION 3: PLATFORM ARCHITECTURE */}
-        <section id="platform" className="space-y-8 border-t border-[#1c1c1f] pt-16">
-          <div>
-            <span className="text-[10px] text-[#86efac] font-bold uppercase tracking-widest block mb-2">
-              [ ARCHITECTURE BLUEPRINT ]
-            </span>
-            <h2 className="text-4xl md:text-5xl font-['VT323'] tracking-wider text-white uppercase">
-              A quantum-readiness platform for payments<span className="text-[#86efac]">.</span>
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-6 rounded-xl border border-[#1c1c1f] bg-[#0c0c0e] space-y-3">
-              <span className="text-[10px] text-[#86efac] font-bold uppercase tracking-widest">1 : Silent Bridge</span>
-              <h3 className="font-bold text-sm text-white">Non-Disruptive Integration</h3>
-              <p className="text-xs text-zinc-400 leading-relaxed font-sans">
-                Operates alongside production payment gateways without injecting latency into low-risk transactions.
-              </p>
-            </div>
-
-            <div className="p-6 rounded-xl border border-[#1c1c1f] bg-[#0c0c0e] space-y-3">
-              <span className="text-[10px] text-[#86efac] font-bold uppercase tracking-widest">2 : Inter-Bank Simulation</span>
-              <h3 className="font-bold text-sm text-white">Full-Stack Channel Testing</h3>
-              <p className="text-xs text-zinc-400 leading-relaxed font-sans">
-                Simulate fiber optic QKD channel loss, eavesdropping attacks, and quantum state vector Hilbert encoding.
-              </p>
-            </div>
-
-            <div className="p-6 rounded-xl border border-[#1c1c1f] bg-[#0c0c0e] space-y-3">
-              <span className="text-[10px] text-[#86efac] font-bold uppercase tracking-widest">3 : Hybrid Engine</span>
-              <h3 className="font-bold text-sm text-white">Classical + Quantum Fusion</h3>
-              <p className="text-xs text-zinc-400 leading-relaxed font-sans">
-                Fast GBDT filters 95% of trivial transactions, routing only high-uncertainty transactions to 16D Hilbert space.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* SECTION 4: FILTERING STRATEGY */}
-        <section id="pipeline" className="space-y-8 border-t border-[#1c1c1f] pt-16">
-          <div>
-            <span className="text-[10px] text-[#86efac] font-bold uppercase tracking-widest block mb-2">
-              [ FILTERING STRATEGY ]
-            </span>
-            <h2 className="text-4xl md:text-5xl font-['VT323'] tracking-wider text-white uppercase">
-              Quantum reviews only the uncertain few<span className="text-[#86efac]">.</span>
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 font-mono text-xs">
-            <div className="p-5 bg-[#0c0c0e] border border-[#1c1c1f] rounded-xl space-y-2">
-              <span className="text-[10px] text-zinc-500 uppercase font-bold block">STAGE 1</span>
-              <h3 className="font-bold text-white">Classical Fast Screening</h3>
-              <p className="text-[11px] text-zinc-400 font-sans">Fast GBDT evaluates linear features in sub-millisecond latency.</p>
-            </div>
-
-            <div className="p-5 bg-[#0c0c0e] border border-red-900/60 rounded-xl space-y-2">
-              <span className="text-[10px] text-red-400 uppercase font-bold block">STAGE 2 (QUANTUM)</span>
-              <h3 className="font-bold text-white">Quantum Hilbert Review</h3>
-              <p className="text-[11px] text-zinc-400 font-sans">ZZFeatureMap evaluates 16D non-linear entangled decision hyperplanes.</p>
-            </div>
-
-            <div className="p-5 bg-[#0c0c0e] border border-[#1c1c1f] rounded-xl space-y-2">
-              <span className="text-[10px] text-zinc-500 uppercase font-bold block">STAGE 3</span>
-              <h3 className="font-bold text-white">Analyst Queue</h3>
-              <p className="text-[11px] text-zinc-400 font-sans">High-risk alerts dispatched to human security operations center.</p>
-            </div>
-          </div>
-        </section>
-
-        {/* SECTION 5: SIX MODULES */}
-        <section id="modules" className="space-y-8 border-t border-[#1c1c1f] pt-16">
-          <div>
-            <span className="text-[10px] text-[#86efac] font-bold uppercase tracking-widest block mb-2">
-              [ WORKSPACE CONSOLE ]
-            </span>
-            <h2 className="text-4xl md:text-5xl font-['VT323'] tracking-wider text-white uppercase">
-              Six modules, one lineage<span className="text-[#86efac]">.</span>
-            </h2>
-            <p className="text-xs text-zinc-400 mt-1 font-sans">
-              Click any module to launch directly into that active workspace page.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {modules.map(mod => (
-              <div
-                key={mod.id}
-                onClick={() => onEnterWorkspace(mod.id)}
-                className="group cursor-pointer p-6 rounded-xl border border-[#1c1c1f] bg-[#0c0c0e] hover:border-[#86efac] transition-all duration-300 space-y-3"
-              >
-                <div className="flex items-center justify-between">
-                  <mod.icon className="w-5 h-5 text-[#86efac]" />
-                  <ArrowRight className="w-4 h-4 text-zinc-600 group-hover:text-[#86efac] group-hover:translate-x-1 transition-all" />
-                </div>
-                <h3 className="font-bold text-sm text-white font-mono">{mod.title}</h3>
-                <p className="text-xs text-zinc-400 leading-relaxed font-sans">{mod.desc}</p>
-              </div>
+        <section className="content-section page-width" id="tiers" aria-labelledby="tiers-title">
+          <Eyebrow>02 / THREE TIERS</Eyebrow>
+          <h2 className="display-title section-title" id="tiers-title">A quantum-readiness<br className="desktop-break" /> platform for payments<span className="lime">.</span></h2>
+          <div className="three-card-grid tier-grid">
+            {tiers.map((tier) => (
+              <article className={`info-card tier-card${tier.featured ? ' info-card--featured' : ''}`} key={tier.number}>
+                <StatusPill>{tier.tag}</StatusPill>
+                <div className="tier-number">{tier.number} <span>/ 03</span></div>
+                <h3>{tier.title}</h3>
+                <p>{tier.text}</p>
+                <div className="tier-bottom"><span className="tier-signal" /><span>READINESS LAYER</span></div>
+              </article>
             ))}
           </div>
+        </section>
 
-          <div className="pt-4 flex justify-center">
-            <button
-              onClick={() => onEnterWorkspace('benchmarks')}
-              className="px-8 py-3.5 rounded bg-[#86efac] hover:bg-[#4ade80] text-black font-bold text-xs flex items-center gap-2 transition shadow-[0_0_20px_rgba(74,222,128,0.25)] uppercase tracking-wider"
-            >
-              <span>Launch Workspace Console</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
+        <section className="content-section page-width" id="pipeline" aria-labelledby="pipeline-title">
+          <Eyebrow>03 / TIERED SCORING</Eyebrow>
+          <h2 className="display-title section-title" id="pipeline-title">Quantum reviews only the<br className="desktop-break" /> uncertain few<span className="lime">.</span></h2>
+          <p className="section-intro">Classical Stage 1 handles the real-time path. The quantum stage scores only the gray zone, offline or batched, and is never claimed to be real-time.</p>
+          <div className="three-card-grid stage-grid">
+            {stages.map((stage, index) => (
+              <article className="info-card stage-card" key={stage.stage}>
+                <div className="stage-head"><Eyebrow>{stage.stage}</Eyebrow><span className="stage-track">{index < 2 ? '→' : '✓'}</span></div>
+                <h3>{stage.title}</h3>
+                <p>{stage.text}</p>
+                <div className="stage-meter" aria-hidden="true"><span style={{ width: `${[100, 34, 13][index]}%` }} /></div>
+              </article>
+            ))}
+          </div>
+          <div className="typology-panel">
+            <div className="typology-heading"><Eyebrow>FIVE SEEDED FRAUD TYPOLOGIES</Eyebrow><span className="mono-muted">SYNTHETIC / FIXED SEED</span></div>
+            <div className="typology-list">
+              {typologies.map(([name, description], index) => (
+                <div className="typology-row cursor-pointer" key={name} onClick={() => onEnterWorkspace('replay')}>
+                  <span className="typology-index">0{index + 1}</span>
+                  <span className="typology-name">{name}</span>
+                  <span className="typology-description">{description}</span>
+                  <span className="typology-mark" aria-hidden="true">↗</span>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
-        {/* SECTION 6: FOOTER STATEMENT */}
-        <section id="provenance" className="border-t border-[#1c1c1f] pt-16 pb-12 space-y-8">
-          <div className="p-8 rounded-xl border border-[#1c1c1f] bg-[#0c0c0e] space-y-4">
-            <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold">[ SCIENTIFIC INTEGRITY STATEMENT ]</span>
-            <h2 className="text-3xl md:text-4xl font-['VT323'] tracking-wider text-white uppercase">
-              Gradient boosting may well win. That is an acceptable finding<span className="text-[#86efac]">.</span>
-            </h2>
-            <p className="text-xs text-zinc-400 leading-relaxed font-sans max-w-3xl">
-              Q-UPI Sentinel is built on honest empirical reporting. Every benchmark run records exact hardware specs, noise rates, and bootstrap confidence intervals.
-            </p>
+        <section className="content-section page-width" id="workspace" aria-labelledby="workspace-title">
+          <Eyebrow>04 / THE WORKSPACE</Eyebrow>
+          <h2 className="display-title section-title" id="workspace-title">Six modules. One lineage<span className="lime">.</span></h2>
+          <p className="section-intro">Dataset → Experiment → Artifacts → Policy decision. Every number is computed by the running system.</p>
+          <div className="three-card-grid module-grid">
+            {modules.map((module, index) => (
+              <article 
+                className="info-card module-card cursor-pointer" 
+                key={module.title}
+                onClick={() => onEnterWorkspace(module.id)}
+              >
+                <div className="module-meta"><span>MODULE / 0{index + 1}</span><span className="module-arrow" aria-hidden="true">↗</span></div>
+                <h3>{module.title}</h3>
+                <p>{module.text}</p>
+              </article>
+            ))}
           </div>
+          <div className="workspace-actions">
+            <button 
+              className="button button--primary cursor-pointer" 
+              onClick={() => onEnterWorkspace('benchmarks')}
+            >
+              Open the workspace <ArrowMark />
+            </button>
+            <a className="button button--quiet" href="#honesty">Read the limitations <span aria-hidden="true">↓</span></a>
+            <span className="workspace-status"><span className="status-dot" /> LIVE WORKSPACE ACTIVE</span>
+          </div>
+        </section>
 
-          <div className="flex flex-col md:flex-row justify-between items-center text-[10px] text-zinc-500 font-mono pt-4 border-t border-[#1a1a1e]">
-            <span>Q-UPI SENTINEL QUANTUM RESEARCH ENGINE</span>
-            <span>DATASET → EXPERIMENT → ARTIFACTS → POLICY DECISION</span>
+        <section className="honesty-panel page-width" id="honesty" aria-labelledby="honesty-title">
+          <div className="honesty-panel-inner">
+            <div className="honesty-topline"><Eyebrow>05 / HONESTY BY DESIGN</Eyebrow><span className="mono-muted">METHOD / 01—05</span></div>
+            <h2 className="display-title honesty-title" id="honesty-title">Gradient boosting may well<br className="desktop-break" /> win. That is an acceptable<br className="desktop-break" /> finding<span className="lime">.</span></h2>
+            <div className="honesty-columns">
+              <div className="honesty-column">
+                <h3 className="column-label">WHAT WE DO</h3>
+                {doItems.map(([label, description]) => <div className="honesty-row" key={label}><span className="honesty-label">{label}</span><p>{description}</p></div>)}
+              </div>
+              <div className="honesty-column honesty-column--right">
+                <h3 className="column-label">WHAT WE DON’T CLAIM</h3>
+                {dontItems.map(([label, description]) => <div className="honesty-row" key={label}><span className="honesty-label">{label}</span><p>{description}</p></div>)}
+              </div>
+            </div>
+            <div className="honesty-foot"><span className="lime-square" />CURRENT STATE: REPRODUCIBLE BENCHMARK EVALUATION ACTIVE</div>
           </div>
         </section>
       </main>
+
+      <footer className="site-footer page-width">
+        <div className="footer-left"><BrandMark /><span>RESEARCH PROTOTYPE · SYNTHETIC DATA · REPRODUCIBLE PIPELINE</span></div>
+        <div className="footer-right"><span>Dataset</span><span>→</span><span>Experiment</span><span>→</span><span>Artifacts</span><span>→</span><span>Policy decision</span><a href="#top" aria-label="Back to top">↑</a></div>
+      </footer>
     </div>
   );
 }
