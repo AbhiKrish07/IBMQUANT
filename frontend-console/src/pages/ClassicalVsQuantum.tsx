@@ -260,7 +260,15 @@ export function ClassicalVsQuantum() {
   }, [isStreaming, streamSpeed, simulateAndCompare]);
 
   useEffect(() => {
-    simulateAndCompare();
+    let mounted = true;
+    Promise.resolve().then(() => {
+      if (mounted) {
+        simulateAndCompare();
+      }
+    });
+    return () => {
+      mounted = false;
+    };
   }, [simulateAndCompare]);
 
   const inputCls = "w-full bg-slate-100 dark:bg-[#121214] border border-slate-300 dark:border-zinc-800 p-2.5 text-slate-900 dark:text-zinc-100 font-mono text-sm focus:outline-none focus:border-[#4ade80] rounded-xl transition-colors font-bold";

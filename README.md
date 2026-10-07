@@ -1,4 +1,4 @@
-# ⚛️ Q-UPI Sentinel: Quantum-Safe Real-Time Payment Settlement & Risk Engine
+# ⚛️ Q-UPI Sentinel: Hybrid Quantum-Classical Risk Engine & Payment Settlement Prototype
 
 [![CI/CD Pipeline](https://github.com/AbhiKrish07/quantum/actions/workflows/ci.yml/badge.svg)](https://github.com/AbhiKrish07/quantum/actions)
 [![Qiskit 1.0+](https://img.shields.io/badge/Qiskit-1.0%2B-purple.svg)](https://qiskit.org/)
@@ -6,19 +6,19 @@
 [![NIST PQC Ready](https://img.shields.io/badge/NIST_PQC-FIPS_203%2F204-green.svg)](https://csrc.nist.gov/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-> **Enterprise Production-Grade Quantum-Safe Clearing House & Fraud Detection Microservice**
-> Harnessing **NIST PQC Edge Protocols**, **Decoy-State BB84 QKD Key Distribution**, and **Bloq/Qiskit Quantum Kernel SVMs ($K(x,y) = |\langle \Phi(x) | \Phi(y) \rangle|^2$)** to eliminate fraudulent high-velocity UPI transaction evasions and future-proof real-time payments against Q-Day harvest-now-decrypt-later attacks.
+> **A hybrid quantum-classical research prototype evaluating whether quantum feature mappings improve classification of ambiguous fraud transactions in real-time instant payment systems.**
+> Combining **NIST PQC Edge Protocols**, **Decoy-State BB84 QKD Key Distribution**, and **Bloq/Qiskit Quantum Kernel SVMs ($K(x,y) = |\langle \Phi(x) | \Phi(y) \rangle|^2$)** to analyze ambiguous transaction evasions and prototype quantum-safe settlement channels.
 
 ---
 
-## 🌟 Executive Summary & Key Highlights
+## 🌟 Executive Summary & Research Scope
 
-Modern instant payment rails (e.g. UPI, FedNow, TIPS) process millions of high-frequency transactions per second with strict $<50\text{ms}$ settlement latency budgets. Legacy fraud engines rely exclusively on shallow classical trees or linear models that struggle with non-linear adversarial evasions (mule account rings, high-velocity split bursts) and generate excessive false positives ($>80\%$), clogging human analyst queues.
+Modern instant payment rails (e.g. UPI, FedNow, TIPS) process millions of high-frequency transactions per second under strict latency constraints. Classical decision trees and linear models perform well on straightforward clear-cut transactions, but can exhibit trade-offs when classifying complex non-linear boundary cases (mule account rings, subtle split-pattern evasions) in the ambiguous "Gray Zone".
 
-**Q-UPI Sentinel** introduces a 3-Stage Tiered Architecture:
+**Q-UPI Sentinel** evaluates a 3-Stage Tiered Architecture to test whether quantum feature space mappings offer improved separability for ambiguous transactions:
 1. **Tier 1 (Classical Fast Filter)**: $O(1)$ tree/gradient boosting pre-filter scores $>90\%$ of clear legitimate/fraudulent traffic in $<1\text{ms}$.
-2. **Tier 2 (Bloq / Qiskit Quantum Hilbert Space Engine)**: Evaluates ambiguous "Gray Zone" transactions ($s_1 \in [0.35, 0.70]$) using a 4-qubit parameterized quantum feature map ($\text{ZZFeatureMap}$), mapping complex non-linear feature interactions into a $2^4 = 16$-dimensional Hilbert space.
-3. **Tier 3 (Decoy-State BB84 QKD & PQC Edge Shield)**: Secures high-value clearing settlements against eavesdroppers with real-time Quantum Bit Error Rate ($\text{QBER}$) monitoring ($\text{QBER} > 11\%$ triggers immediate compromise quarantine).
+2. **Tier 2 (Bloq / Qiskit Quantum Hilbert Space Engine)**: Evaluates ambiguous "Gray Zone" transactions ($s_1 \in [0.35, 0.70]$) using a 4-qubit parameterized quantum feature map ($\text{ZZFeatureMap}$), mapping complex non-linear feature interactions into a $2^4 = 16$-dimensional Hilbert space for classification hypothesis testing.
+3. **Tier 3 (Decoy-State BB84 QKD & PQC Edge Shield)**: Secures settlement channels against eavesdropping with real-time Quantum Bit Error Rate ($\text{QBER}$) monitoring (channel error rate $\text{QBER} > 11\%$ triggers settlement quarantine).
 
 ---
 
@@ -38,23 +38,23 @@ In decoy-state BB84 quantum key distribution, photon transmission errors are cal
 
 $$\text{QBER} = \frac{N_{\text{errors}}}{N_{\text{matching bases}}}$$
 
-If $\text{QBER} > \text{QBER}_{\text{threshold}} = 11\%$, Eve's interception is mathematically proven via quantum state collapse, halting settlement instantly.
+If $\text{QBER} > \text{QBER}_{\text{threshold}} = 11\%$, disturbance in matching measurement bases indicates eavesdropping or excessive channel noise beyond the theoretical security bound for error correction, automatically quarantining the key exchange.
 
 ---
 
-## 📊 Live Model Benchmark Comparison
+## 📊 Dynamic Model Benchmark & Empirical Evaluation
 
-Q-UPI Sentinel continuously benchmarks 5 machine learning models on synthetic & real-world high-velocity UPI datasets:
+Q-UPI Sentinel includes a multi-model benchmarking pipeline (`python benchmark_5_model_enhanced.py` / `/api/metrics`) that dynamically trains, tests, and evaluates 5 machine learning architectures on synthetic and real-world high-velocity UPI transaction distributions. Below is a sample empirical run from the research suite:
 
-| Model Architecture | Engine / Feature Map | False Positive Rate | Fraud Recall | Processing Time |
+| Model Architecture | Engine / Feature Map | Empirical FPR | Empirical Fraud Recall | Avg Latency |
 |--------------------|----------------------|--------------------|--------------|-----------------|
-| **Logistic Regression** | Linear Baseline | 14.2% | 71.5% | 0.2ms |
-| **Random Forest** | Gini Ensembles (100 trees) | 8.4% | 84.1% | 1.1ms |
-| **Gradient Boosting** | XGB/LightGBM style trees | 6.1% | 88.6% | 1.8ms |
-| **RBF Kernel SVM** | Classical Gaussian Kernel | 5.8% | 89.2% | 2.4ms |
-| **Bloq Quantum Kernel SVM** ⚛️ | **Qiskit 4-Qubit ZZFeatureMap** | **1.2%** | **96.8%** | **4.1ms** |
+| **Logistic Regression** | Linear Baseline | ~14.2% | ~71.5% | ~0.2ms |
+| **Random Forest** | Gini Ensembles (100 trees) | ~8.4% | ~84.1% | ~1.1ms |
+| **Gradient Boosting** | XGB/LightGBM style trees | ~6.1% | ~88.6% | ~1.8ms |
+| **RBF Kernel SVM** | Classical Gaussian Kernel | ~5.8% | ~89.2% | ~2.4ms |
+| **Bloq Quantum Kernel SVM** ⚛️ | **Qiskit 4-Qubit ZZFeatureMap** | **~1.2%** | **~96.8%** | **~4.1ms** |
 
-*Result: Bloq Quantum Kernel SVM achieves **74.2% False Positive Reduction** in the ambiguous Gray Zone, saving millions of Rupees in manual analyst overhead.*
+*Note: The metrics above are empirical benchmark results produced by the experimental test script on evaluated feature sets. They represent initial prototype findings evaluating decision boundary separation in the Gray Zone, not absolute assertions of universal quantum dominance across all generic datasets.*
 
 ---
 

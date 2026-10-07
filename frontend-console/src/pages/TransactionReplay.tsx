@@ -160,7 +160,15 @@ export function TransactionReplay() {
   }, [stageFilter, typologyFilter]);
 
   useEffect(() => {
-    fetchStreamData();
+    let mounted = true;
+    Promise.resolve().then(() => {
+      if (mounted) {
+        fetchStreamData();
+      }
+    });
+    return () => {
+      mounted = false;
+    };
   }, [fetchStreamData]);
 
   useEffect(() => {
