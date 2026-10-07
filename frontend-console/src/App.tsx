@@ -16,7 +16,7 @@ import { type CanonicalTransaction, CANONICAL_TRANSACTIONS } from './config/tran
 export default function App() {
   const [viewMode, setViewMode] = useState<'landing' | 'workspace'>('landing');
   const [activePage, setActivePage] = useState('benchmarks');
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const isDarkMode = true;
   const [isConnected, setIsConnected] = useState(false);
   const [activeTx, setActiveTx] = useState<CanonicalTransaction>(CANONICAL_TRANSACTIONS[0]); // Default to TXN-84921
 
@@ -94,18 +94,16 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen w-full bg-white dark:bg-[#0c0c0c] text-gray-900 dark:text-white overflow-hidden relative">
+    <div className="flex h-screen w-full bg-[#080908] text-[#e8e9e4] overflow-hidden relative">
       <Sidebar 
         activePage={activePage} 
         setActivePage={setActivePage} 
         isConnected={isConnected} 
         onDatasetOrConfigChange={handleDatasetOrConfigChange}
       />
-      <div className="flex-1 flex flex-col h-screen overflow-hidden bg-gray-50 dark:bg-[#121212] pb-10">
+      <div className="flex-1 flex flex-col h-screen overflow-hidden bg-[#0c0d0c] text-[#e8e9e4] pb-10">
         <Header 
           pageTitle={getPageTitle()} 
-          isDarkMode={isDarkMode} 
-          setIsDarkMode={setIsDarkMode} 
           isConnected={isConnected}
           activeTx={activeTx}
           onSelectTx={handleSelectTx}

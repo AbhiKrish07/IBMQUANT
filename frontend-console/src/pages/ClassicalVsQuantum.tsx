@@ -328,16 +328,16 @@ export function ClassicalVsQuantum({ activeTx = CANONICAL_TRANSACTIONS[0], onSel
     };
   }, [simulateAndCompare]);
 
-  const inputCls = "w-full bg-slate-100 dark:bg-[#121214] border border-slate-300 dark:border-zinc-800 p-2.5 text-slate-900 dark:text-zinc-100 font-mono text-sm focus:outline-none focus:border-[#4ade80] rounded-xl transition-colors font-bold";
-  const labelCls = "text-[11px] text-slate-600 dark:text-zinc-400 font-mono block mb-1 font-semibold";
+  const inputCls = "w-full bg-[#141613] border border-[rgba(231,235,219,0.19)] p-2.5 text-[#e8e9e4] font-mono text-sm focus:outline-none focus:border-[#d4ff55] rounded-xl transition-colors font-bold";
+  const labelCls = "text-[11px] text-[#a0a39c] font-mono block mb-1 font-semibold";
 
   const modelComparisonChartData = [
     { name: 'Classical GB', score: (results?.all_model_probabilities?.GradientBoosting ?? liveScores.classicalProb) * 100, fill: '#64748b' },
-    { name: 'Quantum QSVM', score: (results?.all_model_probabilities?.QiskitQuantumKernel ?? liveScores.quantumProb) * 100, fill: '#4ade80' }
+    { name: 'Quantum QSVM', score: (results?.all_model_probabilities?.QiskitQuantumKernel ?? liveScores.quantumProb) * 100, fill: '#d4ff55' }
   ];
 
   return (
-    <div className="p-6 md:p-8 max-w-[1400px] mx-auto space-y-6 font-sans text-slate-900 dark:text-zinc-100 bg-slate-50 dark:bg-[#070707] min-h-screen">
+    <div className="p-6 md:p-8 max-w-[1400px] mx-auto space-y-6 font-sans text-[#e8e9e4] bg-[#080908] min-h-screen">
       {/* Header Banner */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 dark:border-[#1c1c1f] pb-5">
         <div>
