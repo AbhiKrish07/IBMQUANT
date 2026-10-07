@@ -1,0 +1,9 @@
+{
+  "name": "q-upi-sentinel",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "build": "cd frontend-console && npm install && npm run build",
+    "dev": "cd frontend-console && npm run dev"
+  }
+}

@@ -1,7 +1,6 @@
 {
   "buildCommand": "cd frontend-console && npm install && npm run build",
   "outputDirectory": "frontend-console/dist",
-  "framework": "vite",
   "rewrites": [
     {
       "source": "/(.*)",
