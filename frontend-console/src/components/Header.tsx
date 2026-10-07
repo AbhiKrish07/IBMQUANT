@@ -5,12 +5,21 @@ interface HeaderProps {
   isDarkMode: boolean;
   setIsDarkMode: (val: boolean) => void;
   isConnected: boolean;
+  onBackToLanding?: () => void;
 }
 
-export function Header({ pageTitle, isDarkMode, setIsDarkMode, isConnected }: HeaderProps) {
+export function Header({ pageTitle, isDarkMode, setIsDarkMode, isConnected, onBackToLanding }: HeaderProps) {
   return (
     <header className="h-16 flex items-center justify-between px-8 border-b border-gray-200 dark:border-[#27272a]">
       <div className="flex items-center gap-2 text-xs">
+        {onBackToLanding && (
+          <button 
+            onClick={onBackToLanding}
+            className="text-gray-500 dark:text-zinc-500 hover:text-gray-900 dark:hover:text-white font-mono uppercase tracking-widest transition-colors font-bold mr-1"
+          >
+            [ Landing ]
+          </button>
+        )}
         <span className="text-gray-500 dark:text-zinc-500 uppercase tracking-widest font-semibold">Workspace</span>
         <span className="text-gray-400 dark:text-zinc-600">/</span>
         <span className="text-gray-800 dark:text-zinc-300 font-medium">{pageTitle}</span>

@@ -39,68 +39,69 @@ export function DataSchema() {
   };
 
   const COLORS = ['#ef4444', '#f59e0b', '#3b82f6', '#8b5cf6', '#10b981'];
+  const selectCls = "w-full bg-slate-50 dark:bg-[#0c0c0c] border border-slate-300 dark:border-zinc-700 rounded-lg p-2.5 text-xs text-slate-900 dark:text-white font-mono";
 
   return (
-    <div className="p-8 max-w-[1400px] mx-auto space-y-6">
+    <div className="p-6 md:p-8 max-w-[1400px] mx-auto space-y-6 font-mono text-slate-900 dark:text-zinc-100 bg-slate-50 dark:bg-[#070707] min-h-screen">
       {/* Title Section */}
-      <div className="flex justify-between items-start mb-8">
+      <div className="flex justify-between items-start mb-6">
         <div>
-          <div className="text-[10px] font-mono text-red-600 dark:text-[#86efac] tracking-widest mb-3 uppercase">
-            Q-UPI / Security Gateway
+          <div className="text-[10px] font-mono text-emerald-600 dark:text-[#86efac] tracking-widest mb-2 uppercase flex items-center gap-1.5 font-bold">
+            <Database className="w-3.5 h-3.5" /> Q-UPI / Security Gateway
           </div>
-          <h1 className="text-4xl font-['VT323'] tracking-widest text-gray-900 dark:text-white mb-2">
-            Data Schema & Generator
+          <h1 className="text-3xl md:text-4xl font-['VT323'] tracking-widest text-slate-900 dark:text-white mb-1">
+            Data Schema &amp; Generator
           </h1>
-          <p className="text-sm text-gray-600 dark:text-zinc-400">
-            Generate synthetic UPI-style payment datasets with 5 realistic fraud typologies (FR-1 & FR-2).
+          <p className="text-xs text-slate-600 dark:text-zinc-400 font-sans">
+            Generate synthetic UPI-style payment datasets with 5 realistic fraud typologies.
           </p>
         </div>
         <div className="flex gap-3">
           <button
             onClick={handleGenerate}
             disabled={isGenerating}
-            className={`px-4 py-2 rounded-lg border border-red-600 dark:border-[#86efac] bg-red-600 dark:bg-[#86efac] hover:bg-red-500 dark:bg-[#4ade80] text-white dark:text-gray-900 text-sm font-medium flex items-center gap-2 transition ${
+            className={`px-4 py-2 rounded-lg border border-emerald-600 dark:border-[#86efac] bg-emerald-600 dark:bg-[#86efac] hover:bg-emerald-500 dark:hover:bg-[#4ade80] text-white dark:text-gray-900 text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-2 transition shadow-sm ${
               isGenerating ? 'opacity-75 cursor-wait' : ''
             }`}
           >
-            <RefreshCw className={`w-4 h-4 ${isGenerating ? 'animate-spin' : ''}`} />
-            {isGenerating ? 'Generating Dataset...' : 'Generate dataset'}
+            <RefreshCw className={`w-3.5 h-3.5 ${isGenerating ? 'animate-spin' : ''}`} />
+            {isGenerating ? 'Generating...' : 'Generate dataset'}
           </button>
         </div>
       </div>
 
       {/* Generator Controls */}
-      <div className="border border-gray-200 dark:border-[#27272a] bg-white dark:bg-[#0c0c0c] shadow-sm rounded-xl p-6">
-        <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-          <Database className="w-4 h-4 text-red-600 dark:text-[#86efac]" /> Generator Parameters (FR-1)
+      <div className="border border-slate-200 dark:border-[#27272a] bg-white dark:bg-[#0c0c0c] shadow-sm rounded-xl p-6">
+        <h3 className="font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2 text-xs font-mono uppercase">
+          <Database className="w-4 h-4 text-emerald-600 dark:text-[#86efac]" /> Generator Parameters
         </h3>
-        <div className="grid grid-cols-4 gap-6">
-          <div className="space-y-2">
-            <label className="text-xs text-gray-600 dark:text-zinc-400">Dataset Source</label>
-            <select value={datasetMode} onChange={(e) => setDatasetMode(e.target.value as 'synthetic' | 'csv_benchmark')} className="w-full bg-white dark:bg-[#0c0c0c] border border-gray-300 dark:border-zinc-700 rounded-lg p-2.5 text-sm text-gray-900 dark:text-white">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <div className="space-y-1">
+            <label className="text-xs text-slate-600 dark:text-zinc-400 font-bold">Dataset Source</label>
+            <select value={datasetMode} onChange={(e) => setDatasetMode(e.target.value as 'synthetic' | 'csv_benchmark')} className={selectCls}>
               <option value="synthetic">Seeded Synthetic UPI</option>
               <option value="csv_benchmark">Adapted CSV Benchmark</option>
             </select>
           </div>
-          <div className="space-y-2">
-            <label className="text-xs text-gray-600 dark:text-zinc-400">Transaction Volume</label>
+          <div className="space-y-1">
+            <label className="text-xs text-slate-600 dark:text-zinc-400 font-bold">Transaction Volume</label>
             <select
               value={nTxns}
               onChange={(e) => setNTxns(Number(e.target.value))}
-              className="w-full bg-white dark:bg-[#0c0c0c] border border-gray-300 dark:border-zinc-700 rounded-lg p-2.5 text-sm text-gray-900 dark:text-white"
+              className={selectCls}
             >
               <option value={1500}>1,500 Transactions</option>
               <option value={5000}>5,000 Transactions</option>
-              <option value={20000}>20,000 Transactions (Full Split)</option>
+              <option value={20000}>20,000 Transactions</option>
             </select>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-xs text-gray-600 dark:text-zinc-400">Fraud Rate</label>
+          <div className="space-y-1">
+            <label className="text-xs text-slate-600 dark:text-zinc-400 font-bold">Fraud Rate</label>
             <select
               value={fraudRate}
               onChange={(e) => setFraudRate(Number(e.target.value))}
-              className="w-full bg-white dark:bg-[#0c0c0c] border border-gray-300 dark:border-zinc-700 rounded-lg p-2.5 text-sm text-gray-900 dark:text-white"
+              className={selectCls}
             >
               <option value={0.01}>1.0% (Realistic Imbalance)</option>
               <option value={0.04}>4.0% (SRS Standard)</option>
@@ -108,12 +109,12 @@ export function DataSchema() {
             </select>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-xs text-gray-600 dark:text-zinc-400">Random Seed</label>
+          <div className="space-y-1">
+            <label className="text-xs text-slate-600 dark:text-zinc-400 font-bold">Random Seed</label>
             <select
               value={seed}
               onChange={(e) => setSeed(Number(e.target.value))}
-              className="w-full bg-white dark:bg-[#0c0c0c] border border-gray-300 dark:border-zinc-700 rounded-lg p-2.5 text-sm text-gray-900 dark:text-white"
+              className={selectCls}
             >
               <option value={42}>Seed 42</option>
               <option value={43}>Seed 43</option>
@@ -122,14 +123,14 @@ export function DataSchema() {
             </select>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-xs text-gray-600 dark:text-zinc-400">Concept Drift</label>
+          <div className="space-y-1">
+            <label className="text-xs text-slate-600 dark:text-zinc-400 font-bold">Concept Drift</label>
             <button
               onClick={() => setDrift(!drift)}
-              className={`w-full p-2.5 rounded-lg border text-sm font-medium transition ${
+              className={`w-full p-2.5 rounded-lg border text-xs font-mono font-bold transition ${
                 drift
-                  ? 'border-red-600 dark:border-[#86efac] bg-red-50 dark:bg-green-950/20 text-red-600 dark:text-[#86efac]'
-                  : 'border-gray-300 dark:border-zinc-700 text-gray-500'
+                  ? 'border-emerald-500 dark:border-[#86efac] bg-emerald-50 dark:bg-emerald-950/20 text-emerald-800 dark:text-[#86efac]'
+                  : 'border-slate-300 dark:border-zinc-700 text-slate-500'
               }`}
             >
               {drift ? 'Day 20 Drift Active' : 'No Concept Drift'}
@@ -142,15 +143,15 @@ export function DataSchema() {
 
       {/* Visual Charts */}
       {datasetSummary && (
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Amount Distribution */}
-          <div className="border border-gray-200 dark:border-[#27272a] bg-white dark:bg-[#0c0c0c] shadow-sm rounded-xl p-6">
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Amount Distribution (Legit vs Fraud Tail)</h3>
+          <div className="border border-slate-200 dark:border-[#27272a] bg-white dark:bg-[#0c0c0c] shadow-sm rounded-xl p-6">
+            <h3 className="font-semibold text-slate-900 dark:text-white mb-4 text-xs uppercase">Amount Distribution (Legit vs Fraud Tail)</h3>
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={datasetSummary.amount_distribution}>
                 <XAxis dataKey="bin" stroke="#71717a" tick={{ fontSize: 9 }} />
                 <YAxis stroke="#71717a" tick={{ fontSize: 10 }} />
-                <Tooltip contentStyle={{ backgroundColor: '#18181b', borderColor: '#3f3f46', color: '#fff' }} />
+                <Tooltip contentStyle={{ backgroundColor: '#ffffff', borderColor: '#cbd5e1', color: '#000' }} />
                 <Legend />
                 <Bar dataKey="legit" fill="#3b82f6" name="Legitimate Txns" />
                 <Bar dataKey="fraud" fill="#ef4444" name="Fraudulent Txns" />
@@ -159,8 +160,8 @@ export function DataSchema() {
           </div>
 
           {/* Typology Breakdown */}
-          <div className="border border-gray-200 dark:border-[#27272a] bg-white dark:bg-[#0c0c0c] shadow-sm rounded-xl p-6 flex flex-col">
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Injected Fraud Typologies</h3>
+          <div className="border border-slate-200 dark:border-[#27272a] bg-white dark:bg-[#0c0c0c] shadow-sm rounded-xl p-6 flex flex-col">
+            <h3 className="font-semibold text-slate-900 dark:text-white mb-4 text-xs uppercase">Injected Fraud Typologies</h3>
             <ResponsiveContainer width="100%" height={240}>
               <PieChart>
                 <Pie
@@ -176,7 +177,7 @@ export function DataSchema() {
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip contentStyle={{ backgroundColor: '#18181b', borderColor: '#3f3f46', color: '#fff' }} />
+                <Tooltip contentStyle={{ backgroundColor: '#ffffff', borderColor: '#cbd5e1', color: '#000' }} />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -184,10 +185,10 @@ export function DataSchema() {
       )}
 
       {/* Schema Table */}
-      <div className="border border-gray-200 dark:border-[#27272a] bg-white dark:bg-[#0c0c0c] shadow-sm rounded-xl p-6">
-        <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Canonical UPI Transaction Schema</h3>
+      <div className="border border-slate-200 dark:border-[#27272a] bg-white dark:bg-[#0c0c0c] shadow-sm rounded-xl p-6">
+        <h3 className="font-semibold text-slate-900 dark:text-white mb-4 text-xs uppercase font-mono">Canonical UPI Transaction Schema</h3>
         <table className="w-full text-xs font-mono">
-          <thead className="text-[10px] text-gray-500 uppercase border-b border-gray-200 dark:border-[#27272a]">
+          <thead className="text-[10px] text-slate-500 uppercase border-b border-slate-200 dark:border-[#27272a]">
             <tr>
               <th className="text-left pb-2">Field</th>
               <th className="text-left pb-2">Type</th>
@@ -195,33 +196,33 @@ export function DataSchema() {
               <th className="text-left pb-2">Feature Group</th>
             </tr>
           </thead>
-          <tbody className="text-gray-700 dark:text-zinc-300">
-            <tr className="border-b border-gray-100 dark:border-zinc-800/50">
-              <td className="py-2 text-red-600 dark:text-[#86efac]">txn_id</td>
+          <tbody className="text-slate-800 dark:text-zinc-300">
+            <tr className="border-b border-slate-100 dark:border-zinc-800/50">
+              <td className="py-2 text-emerald-600 dark:text-[#86efac] font-bold">txn_id</td>
               <td>uuid</td>
               <td>Unique transaction locator</td>
               <td>Identifier</td>
             </tr>
-            <tr className="border-b border-gray-100 dark:border-zinc-800/50">
-              <td className="py-2 text-red-600 dark:text-[#86efac]">amount_inr</td>
+            <tr className="border-b border-slate-100 dark:border-zinc-800/50">
+              <td className="py-2 text-emerald-600 dark:text-[#86efac] font-bold">amount_inr</td>
               <td>float</td>
               <td>Transaction value in INR</td>
               <td>Transaction</td>
             </tr>
-            <tr className="border-b border-gray-100 dark:border-zinc-800/50">
-              <td className="py-2 text-red-600 dark:text-[#86efac]">velocity_1h / 24h</td>
+            <tr className="border-b border-slate-100 dark:border-zinc-800/50">
+              <td className="py-2 text-emerald-600 dark:text-[#86efac] font-bold">velocity_1h / 24h</td>
               <td>int</td>
               <td>Number of transactions in rolling window</td>
               <td>Behavioral</td>
             </tr>
-            <tr className="border-b border-gray-100 dark:border-zinc-800/50">
-              <td className="py-2 text-red-600 dark:text-[#86efac]">geo_speed_kmh</td>
+            <tr className="border-b border-slate-100 dark:border-zinc-800/50">
+              <td className="py-2 text-emerald-600 dark:text-[#86efac] font-bold">geo_speed_kmh</td>
               <td>float</td>
               <td>Implied speed between consecutive transactions</td>
               <td>Behavioral</td>
             </tr>
-            <tr className="border-b border-gray-100 dark:border-zinc-800/50">
-              <td className="py-2 text-red-600 dark:text-[#86efac]">ring_score</td>
+            <tr className="border-b border-slate-100 dark:border-zinc-800/50">
+              <td className="py-2 text-emerald-600 dark:text-[#86efac] font-bold">ring_score</td>
               <td>float [0,1]</td>
               <td>Rolling 24h graph community detection score</td>
               <td>Graph Network</td>

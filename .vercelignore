@@ -1,0 +1,14 @@
+# Ignore all Python, backend, and non-frontend files for Vercel static build
+*.py
+*.pyc
+*.pkl
+requirements.txt
+Dockerfile
+docker-compose.yml
+api/
+q_upi_sentinel/
+q_upi/
+engine/
+tests/
+marketing/
+.vscode/

@@ -131,6 +131,294 @@ def generate_synthetic_upi_data(
     return pd.DataFrame(txns)
 
 
+
+def load_ibm_aml_dataset(n_txns: int = 1500, fraud_rate: float = 0.04, seed: int = 42) -> pd.DataFrame:
+    """
+    Load IBM Transactions for Anti-Money Laundering (AML) dataset from Kaggle.
+    Maps graph-based laundering features to Q-UPI Sentinel feature schema.
+    Reference: ealtman2019/ibm-transactions-for-anti-money-laundering-aml
+    """
+    np.random.seed(seed)
+    try:
+        import kagglehub
+        from kagglehub import KaggleDatasetAdapter
+        df = kagglehub.load_dataset(
+            KaggleDatasetAdapter.PANDAS,
+            "ealtman2019/ibm-transactions-for-anti-money-laundering-aml",
+            "",
+        )
+        print(f"[IBM AML] Loaded {len(df)} rows from Kaggle dataset.")
+    except Exception as e:
+        print(f"[IBM AML] Kaggle load failed ({e}), using synthetic fallback.")
+        return generate_seeded_synthetic_upi_data(n_txns=n_txns, fraud_rate=fraud_rate, seed=seed)
+
+    # Column normalisation: dataset uses various naming conventions across releases
+    df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
+    label_col = next((c for c in df.columns if "laundering" in c or "is_laundering" in c or c == "label"), None)
+    amount_col = next((c for c in df.columns if "amount" in c), None)
+    if label_col is None or amount_col is None:
+        print("[IBM AML] Could not identify label/amount columns, using synthetic fallback.")
+        return generate_seeded_synthetic_upi_data(n_txns=n_txns, fraud_rate=fraud_rate, seed=seed)
+
+    fraud_df = df[df[label_col] == 1]
+    legit_df  = df[df[label_col] == 0]
+    fraud_count = max(1, min(int(round(n_txns * fraud_rate)), n_txns - 1))
+    legit_count = n_txns - fraud_count
+    rng = np.random.default_rng(seed)
+    sampled = pd.concat([
+        fraud_df.sample(n=min(fraud_count, len(fraud_df)), replace=fraud_count > len(fraud_df), random_state=seed),
+        legit_df.sample(n=min(legit_count, len(legit_df)), replace=legit_count > len(legit_df), random_state=seed),
+    ]).sample(frac=1, random_state=seed).reset_index(drop=True)
+
+    rows = []
+    for i, row in sampled.iterrows():
+        amt = float(row.get(amount_col, 1000)) * 85.0  # USD -> INR approx
+        rows.append({
+            "txn_id": f"IBM-{seed}-{i:06d}",
+            "ts": pd.Timestamp("2026-01-01") + pd.Timedelta(minutes=int(i)),
+            "payer_id": str(row.get("from_id", row.get("from_account", f"payer{rng.integers(1,301)}"))),
+            "payee_id": str(row.get("to_id", row.get("to_account", f"merchant{rng.integers(1,151)}"))),
+            "amount_inr": max(1.0, round(amt, 2)),
+            "device_age_days": int(rng.integers(0, 720)),
+            "lat": float(rng.normal(19.07, 0.25)),
+            "lon": float(rng.normal(72.88, 0.25)),
+            "is_new_payee": int(rng.binomial(1, 0.2)),
+            "label": int(row[label_col]),
+            "fraud_type": "AML_LAUNDERING" if row[label_col] == 1 else "legitimate",
+        })
+    return pd.DataFrame(rows)
+
+
+def load_berkan_aml_dataset(n_txns: int = 1500, fraud_rate: float = 0.04, seed: int = 42) -> pd.DataFrame:
+    """
+    Load Berkanoztas Synthetic Transaction Monitoring (AML) dataset from Kaggle.
+    Maps columns to Q-UPI Sentinel feature schema.
+    Reference: berkanoztas/synthetic-transaction-monitoring-dataset-aml
+    """
+    np.random.seed(seed)
+    try:
+        import kagglehub
+        from kagglehub import KaggleDatasetAdapter
+        df = kagglehub.load_dataset(
+            KaggleDatasetAdapter.PANDAS,
+            "berkanoztas/synthetic-transaction-monitoring-dataset-aml",
+            "",
+        )
+        print(f"[BERKAN AML] Loaded {len(df)} rows from Kaggle dataset.")
+    except Exception as e:
+        print(f"[BERKAN AML] Kaggle load failed ({e}), using synthetic fallback.")
+        return generate_seeded_synthetic_upi_data(n_txns=n_txns, fraud_rate=fraud_rate, seed=seed)
+
+    df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
+    label_col = next((c for c in df.columns if "fraud" in c or "label" in c or "aml" in c), None)
+    amount_col = next((c for c in df.columns if "amount" in c), None)
+    if label_col is None or amount_col is None:
+        print("[BERKAN AML] Could not identify label/amount columns, using synthetic fallback.")
+        return generate_seeded_synthetic_upi_data(n_txns=n_txns, fraud_rate=fraud_rate, seed=seed)
+
+    fraud_df = df[df[label_col] == 1]
+    legit_df  = df[df[label_col] == 0]
+    fraud_count = max(1, min(int(round(n_txns * fraud_rate)), n_txns - 1))
+    legit_count = n_txns - fraud_count
+    rng = np.random.default_rng(seed)
+    sampled = pd.concat([
+        fraud_df.sample(n=min(fraud_count, len(fraud_df)), replace=fraud_count > len(fraud_df), random_state=seed),
+        legit_df.sample(n=min(legit_count, len(legit_df)), replace=legit_count > len(legit_df), random_state=seed),
+    ]).sample(frac=1, random_state=seed).reset_index(drop=True)
+
+    rows = []
+    for i, row in sampled.iterrows():
+        amt = float(row.get(amount_col, 1000))
+        if amt < 10:
+            amt *= 85.0  # assume USD
+        rows.append({
+            "txn_id": f"BRK-{seed}-{i:06d}",
+            "ts": pd.Timestamp("2026-01-01") + pd.Timedelta(minutes=int(i)),
+            "payer_id": str(row.get("sender_id", row.get("payer_id", f"payer{rng.integers(1,301)}"))),
+            "payee_id": str(row.get("receiver_id", row.get("payee_id", f"merchant{rng.integers(1,151)}"))),
+            "amount_inr": max(1.0, round(amt, 2)),
+            "device_age_days": int(row.get("account_age_days", rng.integers(0, 720))),
+            "lat": float(rng.normal(19.07, 0.25)),
+            "lon": float(rng.normal(72.88, 0.25)),
+            "is_new_payee": int(row.get("is_new_beneficiary", rng.binomial(1, 0.2))),
+            "label": int(row[label_col]),
+            "fraud_type": "AML_SYNTHETIC" if row[label_col] == 1 else "legitimate",
+        })
+    return pd.DataFrame(rows)
+
+
+
+def load_ieee_cis_dataset(n_txns: int = 1500, fraud_rate: float = 0.04, seed: int = 42) -> pd.DataFrame:
+    """
+    Load IEEE-CIS Fraud Detection dataset from Kaggle.
+    Large, real-world e-commerce fraud detection dataset.
+    Reference: ieee-fraud-detection (Vesta Corporation)
+    """
+    np.random.seed(seed)
+    try:
+        import kagglehub
+        from kagglehub import KaggleDatasetAdapter
+        df = kagglehub.load_dataset(
+            KaggleDatasetAdapter.PANDAS,
+            "ieee-fraud-detection/ieee-fraud-detection",
+            "",
+        )
+        print(f"[IEEE-CIS] Loaded {len(df)} rows from Kaggle dataset.")
+    except Exception as e:
+        print(f"[IEEE-CIS] Kaggle load failed ({e}), using synthetic fallback.")
+        return generate_seeded_synthetic_upi_data(n_txns=n_txns, fraud_rate=fraud_rate, seed=seed)
+
+    df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
+    label_col = next((c for c in df.columns if "isfraud" in c or "fraud" in c or c == "label"), None)
+    amount_col = next((c for c in df.columns if "transactionamt" in c or "amount" in c), None)
+    if label_col is None or amount_col is None:
+        print("[IEEE-CIS] Could not identify label/amount columns, using synthetic fallback.")
+        return generate_seeded_synthetic_upi_data(n_txns=n_txns, fraud_rate=fraud_rate, seed=seed)
+
+    fraud_df = df[df[label_col] == 1]
+    legit_df = df[df[label_col] == 0]
+    fraud_count = max(1, min(int(round(n_txns * fraud_rate)), n_txns - 1))
+    legit_count = n_txns - fraud_count
+    rng = np.random.default_rng(seed)
+    sampled = pd.concat([
+        fraud_df.sample(n=min(fraud_count, len(fraud_df)), replace=fraud_count > len(fraud_df), random_state=seed),
+        legit_df.sample(n=min(legit_count, len(legit_df)), replace=legit_count > len(legit_df), random_state=seed),
+    ]).sample(frac=1, random_state=seed).reset_index(drop=True)
+
+    rows = []
+    for i, row in sampled.iterrows():
+        amt = float(row.get(amount_col, 1000)) * 85.0
+        rows.append({
+            "txn_id": f"IEEE-{seed}-{i:06d}",
+            "ts": pd.Timestamp("2026-01-01") + pd.Timedelta(minutes=int(i)),
+            "payer_id": str(row.get("card1", f"payer{rng.integers(1,301)}")),
+            "payee_id": f"merchant{rng.integers(1,151)}",
+            "amount_inr": max(1.0, round(amt, 2)),
+            "device_age_days": int(rng.integers(0, 720)),
+            "lat": float(rng.normal(19.07, 0.25)),
+            "lon": float(rng.normal(72.88, 0.25)),
+            "is_new_payee": int(rng.binomial(1, 0.2)),
+            "label": int(row[label_col]),
+            "fraud_type": "IEEE_CIS_FRAUD" if row[label_col] == 1 else "legitimate",
+        })
+    return pd.DataFrame(rows)
+
+
+def load_paysim_dataset(n_txns: int = 1500, fraud_rate: float = 0.04, seed: int = 42) -> pd.DataFrame:
+    """
+    Load PaySim Mobile Money Simulator dataset from Kaggle.
+    Synthetic mobile money laundering detection dataset.
+    Reference: ealaxi/paysim1
+    """
+    np.random.seed(seed)
+    try:
+        import kagglehub
+        from kagglehub import KaggleDatasetAdapter
+        df = kagglehub.load_dataset(
+            KaggleDatasetAdapter.PANDAS,
+            "ealaxi/paysim1",
+            "",
+        )
+        print(f"[PAYSIM] Loaded {len(df)} rows from Kaggle dataset.")
+    except Exception as e:
+        print(f"[PAYSIM] Kaggle load failed ({e}), using synthetic fallback.")
+        return generate_seeded_synthetic_upi_data(n_txns=n_txns, fraud_rate=fraud_rate, seed=seed)
+
+    df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
+    label_col = next((c for c in df.columns if "isfraud" in c or "fraud" in c or c == "label"), None)
+    amount_col = next((c for c in df.columns if "amount" in c), None)
+    if label_col is None or amount_col is None:
+        print("[PAYSIM] Could not identify label/amount columns, using synthetic fallback.")
+        return generate_seeded_synthetic_upi_data(n_txns=n_txns, fraud_rate=fraud_rate, seed=seed)
+
+    fraud_df = df[df[label_col] == 1]
+    legit_df = df[df[label_col] == 0]
+    fraud_count = max(1, min(int(round(n_txns * fraud_rate)), n_txns - 1))
+    legit_count = n_txns - fraud_count
+    rng = np.random.default_rng(seed)
+    sampled = pd.concat([
+        fraud_df.sample(n=min(fraud_count, len(fraud_df)), replace=fraud_count > len(fraud_df), random_state=seed),
+        legit_df.sample(n=min(legit_count, len(legit_df)), replace=legit_count > len(legit_df), random_state=seed),
+    ]).sample(frac=1, random_state=seed).reset_index(drop=True)
+
+    rows = []
+    for i, row in sampled.iterrows():
+        amt = float(row.get(amount_col, 1000))
+        if amt < 10:
+            amt *= 85.0
+        rows.append({
+            "txn_id": f"PAY-{seed}-{i:06d}",
+            "ts": pd.Timestamp("2026-01-01") + pd.Timedelta(minutes=int(i)),
+            "payer_id": str(row.get("nameorig", f"payer{rng.integers(1,301)}")),
+            "payee_id": str(row.get("namedest", f"merchant{rng.integers(1,151)}")),
+            "amount_inr": max(1.0, round(amt, 2)),
+            "device_age_days": int(rng.integers(0, 720)),
+            "lat": float(rng.normal(19.07, 0.25)),
+            "lon": float(rng.normal(72.88, 0.25)),
+            "is_new_payee": int(rng.binomial(1, 0.15)),
+            "label": int(row[label_col]),
+            "fraud_type": "PAYSIM_MOBILE" if row[label_col] == 1 else "legitimate",
+        })
+    return pd.DataFrame(rows)
+
+
+def load_bank_fraud_dataset(n_txns: int = 1500, fraud_rate: float = 0.04, seed: int = 42) -> pd.DataFrame:
+    """
+    Load Bank Account Fraud dataset (NeurIPS 2022 tabular benchmark) from Kaggle.
+    Reference: sgpjesus/bank-account-fraud-dataset-neurips-2022
+    """
+    np.random.seed(seed)
+    try:
+        import kagglehub
+        from kagglehub import KaggleDatasetAdapter
+        df = kagglehub.load_dataset(
+            KaggleDatasetAdapter.PANDAS,
+            "sgpjesus/bank-account-fraud-dataset-neurips-2022",
+            "",
+        )
+        print(f"[BANK FRAUD] Loaded {len(df)} rows from Kaggle dataset.")
+    except Exception as e:
+        print(f"[BANK FRAUD] Kaggle load failed ({e}), using synthetic fallback.")
+        return generate_seeded_synthetic_upi_data(n_txns=n_txns, fraud_rate=fraud_rate, seed=seed)
+
+    df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
+    label_col = next((c for c in df.columns if "fraud" in c or "label" in c or c == "fraud_bool"), None)
+    amount_col = next((c for c in df.columns if "income" in c or "amount" in c or "credit" in c), None)
+    if label_col is None:
+        print("[BANK FRAUD] Could not identify label column, using synthetic fallback.")
+        return generate_seeded_synthetic_upi_data(n_txns=n_txns, fraud_rate=fraud_rate, seed=seed)
+
+    fraud_df = df[df[label_col] == 1]
+    legit_df = df[df[label_col] == 0]
+    fraud_count = max(1, min(int(round(n_txns * fraud_rate)), n_txns - 1))
+    legit_count = n_txns - fraud_count
+    rng = np.random.default_rng(seed)
+    sampled = pd.concat([
+        fraud_df.sample(n=min(fraud_count, len(fraud_df)), replace=fraud_count > len(fraud_df), random_state=seed),
+        legit_df.sample(n=min(legit_count, len(legit_df)), replace=legit_count > len(legit_df), random_state=seed),
+    ]).sample(frac=1, random_state=seed).reset_index(drop=True)
+
+    rows = []
+    for i, row in sampled.iterrows():
+        amt = float(row.get(amount_col, 5000)) if amount_col else float(rng.lognormal(8, 1))
+        if amt < 100:
+            amt *= 85.0
+        rows.append({
+            "txn_id": f"BNK-{seed}-{i:06d}",
+            "ts": pd.Timestamp("2026-01-01") + pd.Timedelta(minutes=int(i)),
+            "payer_id": f"acct{rng.integers(1,5001)}",
+            "payee_id": f"bank{rng.integers(1,151)}",
+            "amount_inr": max(1.0, round(amt, 2)),
+            "device_age_days": int(row.get("days_since_request", rng.integers(0, 720))),
+            "lat": float(rng.normal(19.07, 0.25)),
+            "lon": float(rng.normal(72.88, 0.25)),
+            "is_new_payee": int(rng.binomial(1, 0.2)),
+            "label": int(row[label_col]),
+            "fraud_type": "BANK_ACCT_FRAUD" if row[label_col] == 1 else "legitimate",
+        })
+    return pd.DataFrame(rows)
+
+
 if __name__ == "__main__":
     df = generate_synthetic_upi_data(n_txns=1000)
     print(f"Generated {len(df)} synthetic UPI transactions. Fraud count: {df['label'].sum()}")

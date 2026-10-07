@@ -100,16 +100,16 @@ export function AdaptiveSecurityPolicy() {
           <p className="text-sm text-gray-600 dark:text-zinc-400 font-mono">Protect at the edge. Triage at the switch. Inspect the quantum horizon.</p>
         </div>
         <div className="flex items-center gap-4 text-xs font-mono">
-          <button onClick={fetchTransactions} className="px-3 py-1.5 rounded border border-gray-300 dark:border-zinc-700 text-white flex items-center gap-2">
+          <button onClick={fetchTransactions} className="px-3 py-1.5 rounded border border-gray-300 dark:border-zinc-700 bg-gray-800 dark:bg-[#1e1e1e] text-white dark:text-white flex items-center gap-2 text-xs font-mono">
             <RefreshCw className="w-3 h-3" /> Refresh Feed
           </button>
         </div>
       </div>
 
-      <div className="border border-green-800 bg-green-950/20 rounded-xl p-4 flex flex-wrap gap-3 items-center">
-        <span className="text-xs font-mono text-green-300 mr-2">JUDGE DEMO SCENARIOS</span>
+      <div className="border border-green-700 dark:border-green-800 bg-green-50 dark:bg-green-950/20 rounded-xl p-4 flex flex-wrap gap-3 items-center">
+        <span className="text-xs font-mono text-green-700 dark:text-green-300 mr-2 font-bold">JUDGE DEMO SCENARIOS</span>
         {Object.entries(scenarios).map(([key, scenario]: [string, any]) => (
-          <button key={key} onClick={() => runScenario(scenario)} className="px-3 py-1.5 rounded border border-green-800 text-xs font-mono text-green-300 hover:bg-green-900/40">
+          <button key={key} onClick={() => runScenario(scenario)} className="px-3 py-1.5 rounded border border-green-600 dark:border-green-800 text-xs font-mono text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors">
             {scenario.label}
           </button>
         ))}
@@ -164,12 +164,12 @@ export function AdaptiveSecurityPolicy() {
           <p className="text-xs text-gray-500 mb-4">ML-KEM-768 quantum-safe key exchange & ML-DSA signatures on payer device.</p>
           
           {selectedTxn && (
-            <div className="p-4 bg-gray-950 border border-zinc-800 rounded-lg space-y-3 font-mono text-xs">
+            <div className="p-4 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-zinc-800 rounded-lg space-y-3 font-mono text-xs">
               <div className="text-red-600 dark:text-[#86efac] font-bold">Encrypted Payload Snapshot</div>
-              <div className="text-gray-400 text-[10px]">Payer: {selectedTxn.payer_id}</div>
-              <div className="text-gray-400 text-[10px]">Payee: {selectedTxn.payee_id}</div>
-              <div className="text-gray-200">Amount: ₹{selectedTxn.amount_inr}</div>
-              <div className="text-green-400">Signature: ML-DSA-65 (PASS)</div>
+              <div className="text-gray-600 dark:text-gray-400 text-[10px]">Payer: {selectedTxn.payer_id}</div>
+              <div className="text-gray-600 dark:text-gray-400 text-[10px]">Payee: {selectedTxn.payee_id}</div>
+              <div className="text-gray-900 dark:text-gray-200">Amount: ₹{selectedTxn.amount_inr}</div>
+              <div className="text-green-600 dark:text-green-400">Signature: ML-DSA-65 (PASS)</div>
             </div>
           )}
         </div>
@@ -211,19 +211,19 @@ export function AdaptiveSecurityPolicy() {
           
           {evaluation ? (
             <div className="space-y-4 font-mono text-xs">
-              <div className="p-4 bg-gray-950 border border-zinc-800 rounded-lg">
-                <div className="text-gray-400 text-[10px]">Triage Stage:</div>
+              <div className="p-4 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-zinc-800 rounded-lg">
+                <div className="text-gray-500 dark:text-gray-400 text-[10px]">Triage Stage:</div>
                 <div className="text-red-600 dark:text-[#86efac] font-bold text-sm">{evaluation.stage_used}</div>
-                <div className="text-gray-400 text-[10px] mt-2">Decision Verdict:</div>
-                <div className="text-white font-bold text-sm">{evaluation.decision}</div>
+                <div className="text-gray-500 dark:text-gray-400 text-[10px] mt-2">Decision Verdict:</div>
+                <div className="text-gray-900 dark:text-white font-bold text-sm">{evaluation.decision}</div>
               </div>
 
-              <div className="p-4 bg-gray-950 border border-zinc-800 rounded-lg">
-                <div className="text-gray-400 text-[10px] mb-2">SHAP Feature Explanation:</div>
+              <div className="p-4 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-zinc-800 rounded-lg">
+                <div className="text-gray-500 dark:text-gray-400 text-[10px] mb-2">SHAP Feature Explanation:</div>
                 {Object.entries(evaluation.explanation || {}).map(([k, v]: any) => (
-                  <div key={k} className="flex justify-between text-[11px] py-1 border-b border-zinc-800">
-                    <span className="text-gray-400">{k}:</span>
-                    <span className="text-red-400 font-bold">{v}</span>
+                  <div key={k} className="flex justify-between text-[11px] py-1 border-b border-gray-200 dark:border-zinc-800">
+                    <span className="text-gray-600 dark:text-gray-400">{k}:</span>
+                    <span className="text-red-600 dark:text-red-400 font-bold">{v}</span>
                   </div>
                 ))}
               </div>
