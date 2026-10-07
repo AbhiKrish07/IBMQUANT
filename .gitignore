@@ -63,3 +63,4 @@ data/
 
 # Logs
 *.log
+.vercel

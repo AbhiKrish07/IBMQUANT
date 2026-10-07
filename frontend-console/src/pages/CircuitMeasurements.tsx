@@ -250,7 +250,7 @@ export function CircuitMeasurements({ activeTx = CANONICAL_TRANSACTIONS[0], onSe
         <button
           onClick={fetchQuantumTelemetry}
           disabled={isExecuting}
-          className="flex items-center gap-2 px-4 py-2 rounded bg-emerald-600 dark:bg-[#86efac] hover:bg-emerald-500 dark:hover:bg-[#4ade80] text-white dark:text-black font-mono font-bold text-xs uppercase tracking-wider transition shadow-[0_0_15px_rgba(74,222,128,0.2)] disabled:opacity-50"
+          className="flex items-center gap-2 px-4 py-2 rounded bg-[#d4ff55] hover:bg-[#e4ff9e] text-[#080908] font-mono font-bold text-xs uppercase tracking-wider transition shadow-[0_0_15px_rgba(212,255,85,0.25)] disabled:opacity-50 cursor-pointer"
         >
           <Play className={`w-3.5 h-3.5 ${isExecuting ? 'animate-spin' : ''}`} />
           {isExecuting ? 'COMPUTING...' : 'EXECUTE CIRCUIT'}

@@ -280,7 +280,7 @@ export function TransactionReplay({ activeTx = CANONICAL_TRANSACTIONS[0], onSele
             className={`px-4 py-2 rounded-lg text-white font-medium text-xs font-mono uppercase tracking-wider flex items-center gap-2 transition shadow-md ${
               isPlaying
                 ? 'bg-amber-600 hover:bg-amber-700 font-bold'
-                : 'bg-emerald-600 dark:bg-[#86efac] dark:text-gray-900 hover:bg-emerald-500 font-bold'
+                : 'bg-[#d4ff55] hover:bg-[#e4ff9e] text-[#080908] font-bold'
             }`}
           >
             {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
@@ -382,7 +382,7 @@ export function TransactionReplay({ activeTx = CANONICAL_TRANSACTIONS[0], onSele
             <button
               onClick={() => handleScorePayload({ amount_inr: testAmount, velocity_1h: testVelocity, geo_speed_kmh: testSpeed, device_age_days: testDeviceAge, is_new_payee: testNewPayee })}
               disabled={isScoring}
-              className="w-full p-2 rounded-lg border border-emerald-600 dark:border-[#86efac] bg-emerald-600 dark:bg-[#86efac] text-white dark:text-gray-900 font-bold text-xs flex items-center justify-center gap-2 shadow"
+              className="w-full p-2 rounded-lg border border-[#d4ff55] bg-[#d4ff55] hover:bg-[#e4ff9e] text-[#080908] font-bold text-xs flex items-center justify-center gap-2 shadow cursor-pointer"
             >
               {isScoring ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
               {isScoring ? 'Scoring...' : 'Score Custom Txn'}

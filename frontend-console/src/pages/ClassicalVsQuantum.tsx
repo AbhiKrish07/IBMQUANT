@@ -346,7 +346,7 @@ export function ClassicalVsQuantum({ activeTx = CANONICAL_TRANSACTIONS[0], onSel
             className={`flex items-center gap-2 px-3.5 py-1.5 rounded font-mono text-xs font-bold transition ${
               isStreaming
                 ? 'bg-amber-500 hover:bg-amber-600 text-black'
-                : 'bg-emerald-600 dark:bg-[#86efac] hover:bg-emerald-500 dark:hover:bg-[#4ade80] text-white dark:text-black shadow-[0_0_15px_rgba(74,222,128,0.2)]'
+                : 'bg-[#d4ff55] hover:bg-[#e4ff9e] text-[#080908] font-bold shadow-[0_0_15px_rgba(212,255,85,0.25)]'
             }`}
           >
             {isStreaming ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
@@ -447,7 +447,7 @@ export function ClassicalVsQuantum({ activeTx = CANONICAL_TRANSACTIONS[0], onSel
           <button
             onClick={() => simulateAndCompare()}
             disabled={loading}
-            className="w-full mt-4 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-emerald-600 dark:bg-[#4ade80] hover:bg-emerald-500 dark:hover:bg-[#86efac] text-white dark:text-black font-bold text-xs font-mono uppercase tracking-wider transition shadow-md disabled:opacity-50"
+            className="w-full mt-4 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#d4ff55] hover:bg-[#e4ff9e] text-[#080908] font-bold text-xs font-mono uppercase tracking-wider transition shadow-md cursor-pointer disabled:opacity-50"
           >
             {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
             <span>{loading ? 'Computing...' : '▷ Run Head-to-Head Comparison'}</span>

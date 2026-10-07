@@ -68,7 +68,7 @@ export function DataSchema({ activeTx: _activeTx = CANONICAL_TRANSACTIONS[0] }: 
           <button
             onClick={handleGenerate}
             disabled={isGenerating}
-            className={`px-4 py-2 rounded-lg border border-emerald-600 dark:border-[#86efac] bg-emerald-600 dark:bg-[#86efac] hover:bg-emerald-500 dark:hover:bg-[#4ade80] text-white dark:text-gray-900 text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-2 transition shadow-sm ${
+            className={`px-4 py-2 rounded-lg border border-[#d4ff55] bg-[#d4ff55] hover:bg-[#e4ff9e] text-[#080908] text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-2 transition shadow-sm cursor-pointer ${
               isGenerating ? 'opacity-75 cursor-wait' : ''
             }`}
           >
