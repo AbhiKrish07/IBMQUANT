@@ -277,14 +277,17 @@ export function TransactionReplay({ activeTx = CANONICAL_TRANSACTIONS[0], onSele
         <div className="flex gap-3">
           <button
             onClick={() => setIsPlaying(!isPlaying)}
-            className={`px-4 py-2 rounded-lg text-white font-medium text-xs font-mono uppercase tracking-wider flex items-center gap-2 transition shadow-md ${
-              isPlaying
-                ? 'bg-amber-600 hover:bg-amber-700 font-bold'
-                : 'bg-[#d4ff55] hover:bg-[#e4ff9e] text-[#080908] font-bold'
-            }`}
+            style={{ backgroundColor: isPlaying ? '#f59e0b' : '#d4ff55', color: '#080908' }}
+            className="px-4 py-2 rounded-lg font-mono text-xs uppercase tracking-wider flex items-center gap-2 transition shadow-md !text-[#080908] font-extrabold cursor-pointer hover:bg-[#c8ed57]"
           >
-            {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-            {isPlaying ? 'Pause Stream' : 'Start Live Replay'}
+            {isPlaying ? (
+              <Pause className="w-4 h-4 fill-[#080908] text-[#080908]" style={{ color: '#080908' }} />
+            ) : (
+              <Play className="w-4 h-4 fill-[#080908] text-[#080908]" style={{ color: '#080908' }} />
+            )}
+            <span style={{ color: '#080908' }} className="font-extrabold text-[#080908]">
+              {isPlaying ? 'Pause Stream' : 'Start Live Replay'}
+            </span>
           </button>
         </div>
       </div>

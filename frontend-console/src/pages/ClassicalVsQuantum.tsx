@@ -344,14 +344,17 @@ export function ClassicalVsQuantum({ activeTx = CANONICAL_TRANSACTIONS[0], onSel
         <div className="flex items-center gap-2 bg-white dark:bg-[#0c0c0e] p-1.5 rounded-lg border border-slate-200 dark:border-[#1c1c1f]">
           <button
             onClick={() => setIsStreaming(!isStreaming)}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded font-mono text-xs font-bold transition ${
-              isStreaming
-                ? 'bg-amber-500 hover:bg-amber-600 text-black'
-                : 'bg-[#d4ff55] hover:bg-[#e4ff9e] text-[#080908] font-bold shadow-[0_0_15px_rgba(212,255,85,0.25)]'
-            }`}
+            style={{ backgroundColor: isStreaming ? '#f59e0b' : '#d4ff55', color: '#080908' }}
+            className="flex items-center gap-2 px-3.5 py-1.5 rounded font-mono text-xs font-black tracking-wider transition cursor-pointer shadow-md !text-[#080908]"
           >
-            {isStreaming ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-            {isStreaming ? 'PAUSE STREAM' : 'AUTO-STREAM DATASET'}
+            {isStreaming ? (
+              <Pause className="w-3.5 h-3.5 fill-[#080908] text-[#080908]" style={{ color: '#080908' }} />
+            ) : (
+              <Play className="w-3.5 h-3.5 fill-[#080908] text-[#080908]" style={{ color: '#080908' }} />
+            )}
+            <span style={{ color: '#080908' }} className="font-extrabold text-[#080908]">
+              {isStreaming ? 'PAUSE STREAM' : 'AUTO-STREAM DATASET'}
+            </span>
           </button>
 
           <div className="flex items-center gap-1 border-l border-slate-200 dark:border-[#1c1c1f] pl-2">
@@ -448,10 +451,17 @@ export function ClassicalVsQuantum({ activeTx = CANONICAL_TRANSACTIONS[0], onSel
           <button
             onClick={() => simulateAndCompare()}
             disabled={loading}
-            className="w-full mt-4 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#d4ff55] hover:bg-[#e4ff9e] text-[#080908] font-bold text-xs font-mono uppercase tracking-wider transition shadow-md cursor-pointer disabled:opacity-50"
+            style={{ backgroundColor: '#d4ff55', color: '#080908' }}
+            className="w-full mt-4 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-xs font-mono uppercase tracking-wider transition shadow-md cursor-pointer disabled:opacity-50 !text-[#080908] hover:bg-[#c8ed57]"
           >
-            {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
-            <span>{loading ? 'Computing...' : '▷ Run Head-to-Head Comparison'}</span>
+            {loading ? (
+              <RefreshCw className="w-4 h-4 animate-spin text-[#080908]" style={{ color: '#080908' }} />
+            ) : (
+              <Play className="w-4 h-4 fill-[#080908] text-[#080908]" style={{ color: '#080908' }} />
+            )}
+            <span style={{ color: '#080908' }} className="font-extrabold text-[#080908]">
+              {loading ? 'Computing...' : '▷ Run Head-to-Head Comparison'}
+            </span>
           </button>
         </div>
 
