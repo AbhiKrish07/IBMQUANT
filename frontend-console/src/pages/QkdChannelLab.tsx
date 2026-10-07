@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Play, Pause, RefreshCw, Eye } from 'lucide-react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from 'recharts';
 import { API_BASE_URL } from '../config';
+import { type CanonicalTransaction, CANONICAL_TRANSACTIONS } from '../config/transactions';
 
 // --- ATTACK DEFINITIONS & PHYSICAL PARAMETERS ---
 interface AttackScenario {
@@ -172,7 +173,13 @@ function QkdQuantumCircuit({
   );
 }
 
-export function QkdChannelLab() {
+interface QkdChannelLabProps {
+  activeTx?: CanonicalTransaction;
+  onSelectTx?: (tx: CanonicalTransaction) => void;
+  onNavigate?: (page: string) => void;
+}
+
+export function QkdChannelLab({ activeTx = CANONICAL_TRANSACTIONS[0] }: QkdChannelLabProps) {
   const [isRunning, setIsRunning] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [stage, setStage] = useState(-1);
@@ -344,6 +351,27 @@ export function QkdChannelLab() {
             {isRunning ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
             {isRunning ? 'SIMULATING...' : 'RUN SIMULATION'}
           </button>
+        </div>
+      </div>
+
+      {/* Active Settlement Context Banner */}
+      <div className="p-4 rounded-xl border border-emerald-300 dark:border-emerald-800/80 bg-emerald-50/60 dark:bg-emerald-950/30 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 font-mono text-xs shadow-sm">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] text-emerald-800 dark:text-[#86efac] font-bold uppercase tracking-wider">[ SETTLEMENT CHANNEL SECURITY ]</span>
+            <span className="px-2 py-0.5 rounded bg-emerald-600 dark:bg-[#86efac] text-white dark:text-black font-bold text-[10px]">{activeTx.id}</span>
+          </div>
+          <h3 className="font-bold text-slate-900 dark:text-white mt-1">
+            Settling Inter-Bank Corridor for {activeTx.id} (Amount: ₹{activeTx.amount_inr.toLocaleString()})
+          </h3>
+        </div>
+        <div className="flex items-center gap-2 text-[10px]">
+          <span className="px-2.5 py-1 bg-white dark:bg-zinc-900 border border-emerald-300 dark:border-emerald-800 rounded font-bold text-emerald-700 dark:text-[#86efac]">
+            Nominal QBER: {(activeTx.qkd_qber * 100).toFixed(1)}%
+          </span>
+          <span className="px-2.5 py-1 bg-emerald-600 dark:bg-[#86efac] text-white dark:text-black font-bold rounded">
+            AES-256 Key Ready
+          </span>
         </div>
       </div>
 

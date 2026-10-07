@@ -1,8 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Download, RefreshCw, Zap } from 'lucide-react';
+import { Download, RefreshCw, Zap, ArrowRight, ShieldAlert, ShieldCheck } from 'lucide-react';
 import { fetchApi } from '../config';
+import { type CanonicalTransaction, CANONICAL_TRANSACTIONS } from '../config/transactions';
 
-export function ExperimentsProvenance() {
+interface ExperimentsProvenanceProps {
+  activeTx?: CanonicalTransaction;
+  onSelectTx?: (tx: CanonicalTransaction) => void;
+  onNavigate?: (page: string) => void;
+}
+
+export function ExperimentsProvenance({ activeTx = CANONICAL_TRANSACTIONS[0], onSelectTx, onNavigate }: ExperimentsProvenanceProps) {
   const [expType, setExpType] = useState('all');
   const [experiments, setExperiments] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -25,10 +32,23 @@ export function ExperimentsProvenance() {
   }, []);
 
   const handleExportJson = () => {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(experiments, null, 2));
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
+      active_transaction: activeTx,
+      lineage_trace: [
+        { step: 1, name: "Dataset Stream", detail: `Txn ID: ${activeTx.id}` },
+        { step: 2, name: "Feature Extraction", detail: `Amount: ₹${activeTx.amount_inr}, Vel: ${activeTx.velocity_1h}/h` },
+        { step: 3, name: "Stage 1 Classical GBDT", detail: `Fast Filter Score s_1 = ${activeTx.s1_score}` },
+        { step: 4, name: "Gray-Zone Router", detail: activeTx.s1_score >= 0.35 && activeTx.s1_score <= 0.70 ? "Routed to Stage 2 Quantum" : "Stage 1 Direct Path" },
+        { step: 5, name: "Stage 2 Qiskit Hilbert Kernel", detail: `Hilbert Dim 16, Score s_2 = ${activeTx.s2_score}` },
+        { step: 6, name: "Classification Decision", detail: activeTx.decision },
+        { step: 7, name: "Adaptive Security Policy", detail: "Enforce Step-Up Authentication / Quarantine" },
+        { step: 8, name: "QKD Settlement Channel", detail: `BB84 QBER: ${(activeTx.qkd_qber * 100).toFixed(1)}%` }
+      ],
+      provenance_ledger: experiments
+    }, null, 2));
     const downloadAnchor = document.createElement('a');
     downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", "experiments_provenance_manifest.json");
+    downloadAnchor.setAttribute("download", `provenance_manifest_${activeTx.id}.json`);
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
@@ -40,19 +60,30 @@ export function ExperimentsProvenance() {
     return true;
   });
 
+  const lineageSteps = [
+    { num: '01', title: 'Dataset Ingestion', text: `Txn ID: ${activeTx.id}`, page: 'replay' },
+    { num: '02', title: 'Feature Extraction', text: `₹${activeTx.amount_inr.toLocaleString()} • ${activeTx.velocity_1h}tx/h`, page: 'schema' },
+    { num: '03', title: 'Classical GBDT', text: `s_1 Score = ${activeTx.s1_score}`, page: 'compare' },
+    { num: '04', title: 'Gray-Zone Router', text: activeTx.s1_score >= 0.35 && activeTx.s1_score <= 0.70 ? 's_1 ∈ [0.35, 0.70] ➔ Quantum' : 'Fast-Path Exit', page: 'compare' },
+    { num: '05', title: 'Qiskit ZZFeatureMap', text: `2⁴=16D Hilbert (θ_0=${activeTx.quantum_angles[0]})`, page: 'circuit' },
+    { num: '06', title: 'Quantum Decision', text: activeTx.decision, page: 'compare' },
+    { num: '07', title: 'Adaptive Policy', text: 'Step-Up Auth / Quarantine', page: 'replay' },
+    { num: '08', title: 'QKD Settlement', text: `QBER: ${(activeTx.qkd_qber * 100).toFixed(1)}%`, page: 'qkd' },
+  ];
+
   return (
     <div className="p-6 md:p-8 max-w-[1400px] mx-auto space-y-6 font-mono text-slate-900 dark:text-zinc-100 bg-slate-50 dark:bg-[#070707] min-h-screen">
       {/* Title Section */}
       <div className="flex justify-between items-start mb-6">
         <div>
           <div className="text-[10px] font-mono text-emerald-600 dark:text-[#86efac] tracking-widest mb-2 uppercase flex items-center gap-1.5 font-bold">
-            <Zap className="w-3.5 h-3.5 animate-pulse" /> Q-UPI / Cryptographic Audit Ledger
+            <Zap className="w-3.5 h-3.5 animate-pulse" /> Q-UPI / Cryptographic Audit &amp; Lineage Ledger
           </div>
           <h1 className="text-3xl md:text-4xl font-['VT323'] tracking-widest text-slate-900 dark:text-white mb-1">
-            Experiments &amp; Provenance Manifest
+            Experiments &amp; Lineage Provenance
           </h1>
           <p className="text-xs text-slate-600 dark:text-zinc-400 font-sans">
-            Persistent ledger of all model retraining events, benchmark runs, head-to-head tests, and QKD sessions.
+            Trace end-to-end execution lineage for active transaction <strong className="text-emerald-600 dark:text-[#86efac]">{activeTx.id}</strong> from dataset stream to QKD settlement.
           </p>
         </div>
         <div className="flex gap-3">
@@ -66,8 +97,61 @@ export function ExperimentsProvenance() {
             onClick={handleExportJson}
             className="px-4 py-2 rounded-lg border border-emerald-600 dark:border-[#86efac] bg-emerald-600 dark:bg-[#86efac] text-white dark:text-black text-xs font-bold flex items-center gap-2 shadow-sm"
           >
-            <Download className="w-4 h-4" /> Export Manifest JSON
+            <Download className="w-4 h-4" /> Export Lineage Manifest JSON
           </button>
+        </div>
+      </div>
+
+      {/* END-TO-END TRANSACTION LINEAGE FLOW DIAGRAM */}
+      <div className="border-2 border-emerald-300 dark:border-emerald-800/80 bg-emerald-50/40 dark:bg-emerald-950/20 p-6 rounded-2xl space-y-4 shadow-md">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-emerald-200 dark:border-emerald-900/60 pb-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-emerald-800 dark:text-[#86efac] uppercase tracking-wider">
+              END-TO-END LINEAGE FLOW TRACE:
+            </span>
+            <select
+              value={activeTx.id}
+              onChange={(e) => {
+                const target = CANONICAL_TRANSACTIONS.find(t => t.id === e.target.value);
+                if (target && onSelectTx) onSelectTx(target);
+              }}
+              className="bg-white dark:bg-zinc-900 border border-emerald-400 dark:border-emerald-700 rounded-md px-2 py-0.5 text-xs font-bold text-emerald-800 dark:text-[#86efac]"
+            >
+              {CANONICAL_TRANSACTIONS.map((tx) => (
+                <option key={tx.id} value={tx.id}>{tx.id} — {tx.title}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={`text-xs font-bold px-2.5 py-1 rounded flex items-center gap-1 uppercase ${
+              activeTx.ground_truth === 'MULE_FRAUD' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-400' : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-400'
+            }`}>
+              {activeTx.ground_truth === 'MULE_FRAUD' ? <ShieldAlert className="w-3.5 h-3.5" /> : <ShieldCheck className="w-3.5 h-3.5" />}
+              {activeTx.ground_truth}
+            </span>
+          </div>
+        </div>
+
+        {/* 8-Step Pipeline Stepper */}
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2.5 pt-2">
+          {lineageSteps.map((step, idx) => (
+            <div
+              key={step.num}
+              onClick={() => onNavigate && onNavigate(step.page)}
+              className="p-3 bg-white dark:bg-[#0c0c0e] border border-emerald-200 dark:border-emerald-900/60 hover:border-emerald-500 rounded-xl space-y-1.5 cursor-pointer transition group relative"
+            >
+              <div className="flex justify-between items-center text-[10px]">
+                <span className="text-emerald-600 dark:text-[#86efac] font-bold">{step.num}</span>
+                {idx < 7 && <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-emerald-500 group-hover:translate-x-0.5 transition" />}
+              </div>
+              <h4 className="font-bold text-[11px] text-slate-900 dark:text-white truncate group-hover:text-emerald-600 dark:group-hover:text-[#86efac]">
+                {step.title}
+              </h4>
+              <p className="text-[9px] text-slate-500 dark:text-zinc-400 leading-tight">
+                {step.text}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -162,3 +246,4 @@ export function ExperimentsProvenance() {
     </div>
   );
 }
+

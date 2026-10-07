@@ -1,12 +1,19 @@
 import { useState, useCallback, useMemo } from 'react';
 import { Play, Zap, Activity } from 'lucide-react';
 import { API_BASE_URL } from '../config';
+import { type CanonicalTransaction, CANONICAL_TRANSACTIONS } from '../config/transactions';
 
 interface StatevectorAmplitude {
   basis: string;
   real: number;
   imag: number;
   prob: number;
+}
+
+interface CircuitMeasurementsProps {
+  activeTx?: CanonicalTransaction;
+  onSelectTx?: (tx: CanonicalTransaction) => void;
+  onNavigate?: (page: string) => void;
 }
 
 function generateDynamicKernelMatrix(dim: number, featureMap: string) {
@@ -106,7 +113,7 @@ function BlochSphereSVG({ x, y, z, label }: { x: number; y: number; z: number; l
 }
 
 // --- SINGLE AUTHORITATIVE QUANTUM LOGIC CIRCUIT SCHEMATIC ---
-function QuantumLogicCircuitSchematic({ qubits, isExecuting }: { qubits: number; isExecuting: boolean }) {
+function QuantumLogicCircuitSchematic({ qubits, isExecuting, angles, activeTxId }: { qubits: number; isExecuting: boolean; angles: [number, number, number, number]; activeTxId: string }) {
   const gateList = [
     { type: 'H', name: 'Hadamard', color: 'bg-blue-600 text-white border-blue-400' },
     { type: 'Rz', name: 'Z-Rotation', color: 'bg-purple-600 text-white border-purple-400' },
@@ -120,7 +127,7 @@ function QuantumLogicCircuitSchematic({ qubits, isExecuting }: { qubits: number;
         <div className="flex items-center gap-2">
           <Zap className="w-4 h-4 text-emerald-600 dark:text-[#4ade80] animate-pulse" />
           <h4 className="text-xs font-bold uppercase text-slate-900 dark:text-white tracking-wider">
-            ZZFeatureMap Quantum Logic Circuit Topology (N={qubits} Qubits)
+            ZZFeatureMap Circuit Topology (Encoding {activeTxId})
           </h4>
         </div>
         <div className="flex items-center gap-2 text-[10px]">
@@ -138,38 +145,41 @@ function QuantumLogicCircuitSchematic({ qubits, isExecuting }: { qubits: number;
           <div className="absolute top-0 bottom-0 w-1.5 bg-emerald-500 dark:bg-[#4ade80] shadow-[0_0_12px_#4ade80] rounded-full animate-pulse z-20" />
         )}
 
-        {Array.from({ length: qubits }).map((_, qIdx) => (
-          <div key={qIdx} className="flex items-center gap-2 min-w-[600px] relative text-xs">
-            <span className="w-14 text-[10px] font-bold text-slate-700 dark:text-zinc-300 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-[#4ade80]"></span>
-              |q{qIdx}⟩
-            </span>
+        {Array.from({ length: qubits }).map((_, qIdx) => {
+          const angle = angles[qIdx % 4] || 1.25;
+          return (
+            <div key={qIdx} className="flex items-center gap-2 min-w-[600px] relative text-xs">
+              <span className="w-14 text-[10px] font-bold text-slate-700 dark:text-zinc-300 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-[#4ade80]"></span>
+                |q{qIdx}⟩
+              </span>
 
-            <div className="flex-1 flex items-center relative">
-              <div className="absolute left-0 right-0 h-px bg-slate-300 dark:bg-zinc-800 z-0"></div>
+              <div className="flex-1 flex items-center relative">
+                <div className="absolute left-0 right-0 h-px bg-slate-300 dark:bg-zinc-800 z-0"></div>
 
-              <div className="w-full flex justify-between items-center relative z-10 px-2">
-                <div className="px-2.5 py-1 rounded border border-blue-500 bg-blue-600 text-white text-[10px] font-bold shadow-sm">
-                  H
-                </div>
-                <div className="px-2.5 py-1 rounded border border-purple-500 bg-purple-600 text-white text-[10px] font-bold shadow-sm flex items-center gap-1">
-                  <span>RZ</span>
-                  <span className="text-[8px] opacity-75">{(2.69 - qIdx * 0.4).toFixed(2)} rad</span>
-                </div>
-                <div className="w-5 h-5 rounded-full bg-cyan-600 text-white flex items-center justify-center text-[10px] font-bold border border-cyan-400 shadow-sm">
-                  +
-                </div>
-                <div className="px-2.5 py-1 rounded border border-purple-500 bg-purple-700 text-white text-[10px] font-bold shadow-sm">
-                  RZ(ZZ)
-                </div>
-                <div className="px-2.5 py-1 rounded border border-emerald-500 bg-emerald-600 text-white text-[10px] font-bold shadow-sm flex items-center gap-1">
-                  <span>M</span>
-                  <Activity className="w-2.5 h-2.5" />
+                <div className="w-full flex justify-between items-center relative z-10 px-2">
+                  <div className="px-2.5 py-1 rounded border border-blue-500 bg-blue-600 text-white text-[10px] font-bold shadow-sm">
+                    H
+                  </div>
+                  <div className="px-2.5 py-1 rounded border border-purple-500 bg-purple-600 text-white text-[10px] font-bold shadow-sm flex items-center gap-1">
+                    <span>RZ</span>
+                    <span className="text-[8px] opacity-90 font-bold">{angle.toFixed(2)} rad</span>
+                  </div>
+                  <div className="w-5 h-5 rounded-full bg-cyan-600 text-white flex items-center justify-center text-[10px] font-bold border border-cyan-400 shadow-sm">
+                    +
+                  </div>
+                  <div className="px-2.5 py-1 rounded border border-purple-500 bg-purple-700 text-white text-[10px] font-bold shadow-sm">
+                    RZ(ZZ)
+                  </div>
+                  <div className="px-2.5 py-1 rounded border border-emerald-500 bg-emerald-600 text-white text-[10px] font-bold shadow-sm flex items-center gap-1">
+                    <span>M</span>
+                    <Activity className="w-2.5 h-2.5" />
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="flex flex-wrap gap-3 pt-2 border-t border-slate-200 dark:border-[#1a1a1d] text-[10px]">
@@ -184,7 +194,7 @@ function QuantumLogicCircuitSchematic({ qubits, isExecuting }: { qubits: number;
   );
 }
 
-export function CircuitMeasurements() {
+export function CircuitMeasurements({ activeTx = CANONICAL_TRANSACTIONS[0], onSelectTx: _onSelectTx }: CircuitMeasurementsProps) {
   const [isExecuting, setIsExecuting] = useState(false);
   const [activeTab, setActiveTab] = useState<'circuit' | 'kernel' | 'statevector' | 'bloch' | 'theory'>('circuit');
 
@@ -356,8 +366,27 @@ export function CircuitMeasurements() {
             })}
           </div>
 
+          {/* Active Transaction Encoding Banner */}
+          <div className="p-4 rounded-xl border border-emerald-300 dark:border-emerald-800/80 bg-emerald-50/60 dark:bg-emerald-950/30 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 font-mono text-xs shadow-sm">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-emerald-800 dark:text-[#86efac] font-bold uppercase tracking-wider">[ QUANTUM FEATURE MAP ENCODING ]</span>
+                <span className="px-2 py-0.5 rounded bg-emerald-600 dark:bg-[#86efac] text-white dark:text-black font-bold text-[10px]">{activeTx.id}</span>
+              </div>
+              <h3 className="font-bold text-slate-900 dark:text-white mt-1">
+                {activeTx.title} (Amount: ₹{activeTx.amount_inr.toLocaleString()}, 1h Vel: {activeTx.velocity_1h}tx/h)
+              </h3>
+            </div>
+            <div className="flex flex-wrap gap-2 text-[10px]">
+              <span className="px-2 py-1 bg-white dark:bg-zinc-900 border border-emerald-300 dark:border-emerald-800 rounded font-bold text-slate-800 dark:text-zinc-200">θ_0 = {activeTx.quantum_angles[0]} rad</span>
+              <span className="px-2 py-1 bg-white dark:bg-zinc-900 border border-emerald-300 dark:border-emerald-800 rounded font-bold text-slate-800 dark:text-zinc-200">θ_1 = {activeTx.quantum_angles[1]} rad</span>
+              <span className="px-2 py-1 bg-white dark:bg-zinc-900 border border-emerald-300 dark:border-emerald-800 rounded font-bold text-slate-800 dark:text-zinc-200">θ_2 = {activeTx.quantum_angles[2]} rad</span>
+              <span className="px-2 py-1 bg-white dark:bg-zinc-900 border border-emerald-300 dark:border-emerald-800 rounded font-bold text-slate-800 dark:text-zinc-200">θ_3 = {activeTx.quantum_angles[3]} rad</span>
+            </div>
+          </div>
+
           {activeTab === 'circuit' && (
-            <QuantumLogicCircuitSchematic qubits={qubits} isExecuting={isExecuting} />
+            <QuantumLogicCircuitSchematic qubits={qubits} isExecuting={isExecuting} angles={activeTx.quantum_angles} activeTxId={activeTx.id} />
           )}
 
           {activeTab === 'kernel' && (

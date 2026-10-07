@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Play, Pause, RefreshCw, Network, Zap, CheckCircle2, XCircle, Shield, Cpu, X, Sparkles, AlertTriangle, ArrowRight } from 'lucide-react';
 import { API_BASE_URL } from '../config';
+import { type CanonicalTransaction, CANONICAL_TRANSACTIONS } from '../config/transactions';
 
 // --- FLOATING REASON & DETAILS MODAL COMPONENT ---
 function FloatingReasonModal({
@@ -123,10 +124,16 @@ function FloatingReasonModal({
   );
 }
 
-export function TransactionReplay() {
+interface TransactionReplayProps {
+  activeTx?: CanonicalTransaction;
+  onSelectTx?: (tx: CanonicalTransaction) => void;
+  onNavigate?: (page: string) => void;
+}
+
+export function TransactionReplay({ activeTx = CANONICAL_TRANSACTIONS[0], onSelectTx, onNavigate: _onNavigate }: TransactionReplayProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [transactions, setTransactions] = useState<any[]>([]);
-  const [selectedTx, setSelectedTx] = useState<any>(null);
+  const [selectedTx, setSelectedTx] = useState<any>(activeTx);
   const [inspectingTx, setInspectingTx] = useState<any>(null);
   const [networkGraph, setNetworkGraph] = useState<any>(null);
 
@@ -198,24 +205,53 @@ export function TransactionReplay() {
   };
 
   const loadScenario = (type: 'low_risk' | 'gray_zone' | 'high_risk') => {
+    let canonical = CANONICAL_TRANSACTIONS[0];
     if (type === 'low_risk') {
+      canonical = CANONICAL_TRANSACTIONS.find(t => t.id === 'TXN-8804') || CANONICAL_TRANSACTIONS[4];
       const payload = { amount_inr: 250, velocity_1h: 0, velocity_24h: 1, geo_speed_kmh: 4, device_age_days: 365, is_new_payee: 0, payee_in_degree_24h: 1 };
       setTestAmount(250); setTestVelocity(0); setTestSpeed(4); setTestDeviceAge(365); setTestNewPayee(0);
       handleScorePayload(payload);
     } else if (type === 'gray_zone') {
+      canonical = CANONICAL_TRANSACTIONS.find(t => t.id === 'TXN-84921') || CANONICAL_TRANSACTIONS[0];
       const payload = { amount_inr: 15000, velocity_1h: 2, velocity_24h: 5, geo_speed_kmh: 110, device_age_days: 8, is_new_payee: 1, payee_in_degree_24h: 8 };
       setTestAmount(15000); setTestVelocity(2); setTestSpeed(110); setTestDeviceAge(8); setTestNewPayee(1);
       handleScorePayload(payload);
     } else {
+      canonical = CANONICAL_TRANSACTIONS.find(t => t.id === 'TXN-8803') || CANONICAL_TRANSACTIONS[3];
       const payload = { amount_inr: 95000, velocity_1h: 18, velocity_24h: 35, geo_speed_kmh: 850, device_age_days: 0, is_new_payee: 1, payee_in_degree_24h: 30 };
       setTestAmount(95000); setTestVelocity(18); setTestSpeed(850); setTestDeviceAge(0); setTestNewPayee(1);
       handleScorePayload(payload);
     }
+    if (onSelectTx) onSelectTx(canonical);
   };
 
   const handleRowClick = (tx: any) => {
     setSelectedTx(tx);
     setInspectingTx(tx);
+    if (onSelectTx) {
+      const canonical = CANONICAL_TRANSACTIONS.find(c => c.id === tx.txn_id || c.id === tx.id) || {
+        id: tx.txn_id || tx.id || 'TXN-LIVE',
+        title: tx.fraud_type || 'Replay Stream Transaction',
+        category: tx.fraud_type || 'Mule Network',
+        amount_inr: tx.amount_inr || 15000,
+        velocity_1h: tx.velocity_1h || 3,
+        velocity_24h: tx.velocity_24h || 10,
+        geo_speed_kmh: tx.geo_speed_kmh || 110,
+        device_age_days: tx.device_age_days || 2,
+        is_new_payee: tx.is_new_payee ?? 1,
+        payee_in_degree_24h: tx.payee_in_degree_24h || 12,
+        ground_truth: tx.ground_truth || 'MULE_FRAUD',
+        description: 'Transaction selected from live stream feed.',
+        s1_score: tx.s1_score || 0.52,
+        s2_score: tx.s2_score || 0.784,
+        stage_used: tx.stage_used || 'Stage 2 Quantum Hilbert Review',
+        decision: tx.decision || 'FLAGGED FOR ANALYST REVIEW',
+        quantum_angles: [2.35, 0.40, 0.73, 0.38],
+        qkd_status: 'SECURE_QKD_KEY_EXCHANGE_ACTIVE',
+        qkd_qber: 0.014
+      };
+      onSelectTx(canonical);
+    }
   };
 
   return (

@@ -19,6 +19,7 @@ import {
 } from 'recharts';
 import { API_BASE_URL } from '../config';
 import { GroqInsightPanel } from '../components/GroqInsightPanel';
+import { type CanonicalTransaction, CANONICAL_TRANSACTIONS } from '../config/transactions';
 
 // --- DATASET STREAM PRESETS ---
 interface TxnScenario {
@@ -151,16 +152,34 @@ const DATASET_SCENARIOS: TxnScenario[] = [
   }
 ];
 
-export function ClassicalVsQuantum() {
+interface ClassicalVsQuantumProps {
+  activeTx?: CanonicalTransaction;
+  onSelectTx?: (tx: CanonicalTransaction) => void;
+  onNavigate?: (page: string) => void;
+}
+
+export function ClassicalVsQuantum({ activeTx = CANONICAL_TRANSACTIONS[0], onSelectTx }: ClassicalVsQuantumProps) {
   const [txnPayload, setTxnPayload] = useState({
-    amount_inr: 15000,
-    velocity_1h: 3,
-    velocity_24h: 10,
-    geo_speed_kmh: 80,
-    device_age_days: 2,
-    is_new_payee: 1,
-    payee_in_degree_24h: 12
+    amount_inr: activeTx.amount_inr,
+    velocity_1h: activeTx.velocity_1h,
+    velocity_24h: activeTx.velocity_24h,
+    geo_speed_kmh: activeTx.geo_speed_kmh,
+    device_age_days: activeTx.device_age_days,
+    is_new_payee: activeTx.is_new_payee,
+    payee_in_degree_24h: activeTx.payee_in_degree_24h
   });
+
+  useEffect(() => {
+    setTxnPayload({
+      amount_inr: activeTx.amount_inr,
+      velocity_1h: activeTx.velocity_1h,
+      velocity_24h: activeTx.velocity_24h,
+      geo_speed_kmh: activeTx.geo_speed_kmh,
+      device_age_days: activeTx.device_age_days,
+      is_new_payee: activeTx.is_new_payee,
+      payee_in_degree_24h: activeTx.payee_in_degree_24h
+    });
+  }, [activeTx]);
 
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<any>(null);
@@ -233,6 +252,30 @@ export function ClassicalVsQuantum() {
     };
     setTxnPayload(newPayload);
     simulateAndCompare(newPayload);
+    if (onSelectTx) {
+      const canonical = CANONICAL_TRANSACTIONS.find(c => c.id === scenario.id) || {
+        id: scenario.id,
+        title: scenario.title,
+        category: scenario.category,
+        amount_inr: scenario.amount_inr,
+        velocity_1h: scenario.velocity_1h,
+        velocity_24h: scenario.velocity_24h,
+        geo_speed_kmh: scenario.geo_speed_kmh,
+        device_age_days: scenario.device_age_days,
+        is_new_payee: scenario.is_new_payee,
+        payee_in_degree_24h: scenario.payee_in_degree_24h,
+        ground_truth: scenario.ground_truth,
+        description: scenario.description,
+        s1_score: 0.52,
+        s2_score: 0.784,
+        stage_used: 'Stage 2 Quantum Hilbert Review',
+        decision: scenario.ground_truth === 'MULE_FRAUD' ? 'FLAGGED FOR ANALYST REVIEW' : 'AUTO-APPROVED',
+        quantum_angles: [2.35, 0.40, 0.73, 0.38],
+        qkd_status: 'SECURE_QKD_KEY_EXCHANGE_ACTIVE',
+        qkd_qber: 0.014
+      };
+      onSelectTx(canonical);
+    }
   };
 
   useEffect(() => {

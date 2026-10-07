@@ -3,7 +3,15 @@ import { Database, RefreshCw } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell } from 'recharts';
 import { API_BASE_URL } from '../config';
 
-export function DataSchema() {
+import { type CanonicalTransaction, CANONICAL_TRANSACTIONS } from '../config/transactions';
+
+interface DataSchemaProps {
+  activeTx?: CanonicalTransaction;
+  onSelectTx?: (tx: CanonicalTransaction) => void;
+  onNavigate?: (page: string) => void;
+}
+
+export function DataSchema({ activeTx: _activeTx = CANONICAL_TRANSACTIONS[0] }: DataSchemaProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [datasetSummary, setDatasetSummary] = useState<any>(null);
 

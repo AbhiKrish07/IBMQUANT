@@ -246,7 +246,15 @@ function BlochInspectorModal({
   );
 }
 
-export function ModelBenchmarks() {
+import { type CanonicalTransaction, CANONICAL_TRANSACTIONS } from '../config/transactions';
+
+interface ModelBenchmarksProps {
+  activeTx?: CanonicalTransaction;
+  onSelectTx?: (tx: CanonicalTransaction) => void;
+  onNavigate?: (page: string) => void;
+}
+
+export function ModelBenchmarks({ activeTx: _activeTx = CANONICAL_TRANSACTIONS[0] }: ModelBenchmarksProps) {
   const [isExecuting, setIsExecuting] = useState(false);
   const [hasExecuted, setHasExecuted] = useState(false);
   const [executionProgress, setExecutionProgress] = useState(0);
