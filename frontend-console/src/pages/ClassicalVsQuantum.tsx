@@ -171,14 +171,27 @@ export function ClassicalVsQuantum({ activeTx = CANONICAL_TRANSACTIONS[0], onSel
   });
 
   useEffect(() => {
-    setTxnPayload({
-      amount_inr: activeTx.amount_inr,
-      velocity_1h: activeTx.velocity_1h,
-      velocity_24h: activeTx.velocity_24h,
-      geo_speed_kmh: activeTx.geo_speed_kmh,
-      device_age_days: activeTx.device_age_days,
-      is_new_payee: activeTx.is_new_payee,
-      payee_in_degree_24h: activeTx.payee_in_degree_24h
+    setTxnPayload(prev => {
+      if (
+        prev.amount_inr === activeTx.amount_inr &&
+        prev.velocity_1h === activeTx.velocity_1h &&
+        prev.velocity_24h === activeTx.velocity_24h &&
+        prev.geo_speed_kmh === activeTx.geo_speed_kmh &&
+        prev.device_age_days === activeTx.device_age_days &&
+        prev.is_new_payee === activeTx.is_new_payee &&
+        prev.payee_in_degree_24h === activeTx.payee_in_degree_24h
+      ) {
+        return prev;
+      }
+      return {
+        amount_inr: activeTx.amount_inr,
+        velocity_1h: activeTx.velocity_1h,
+        velocity_24h: activeTx.velocity_24h,
+        geo_speed_kmh: activeTx.geo_speed_kmh,
+        device_age_days: activeTx.device_age_days,
+        is_new_payee: activeTx.is_new_payee,
+        payee_in_degree_24h: activeTx.payee_in_degree_24h
+      };
     });
   }, [activeTx]);
 
